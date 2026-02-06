@@ -1,0 +1,227 @@
+/***************************************************************************//**
+ * @file   main.c
+ * @brief  AD4134 custom capture with AXI DMAC
+ *******************************************************************************
+ * Copyright 2023-2026 Analog Devices, Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ANALOG DEVICES, INC. "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL ANALOG DEVICES, INC. BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ ******************************************************************************/
+
+#include <stdio.h>
+#include <sleep.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+#include <xil_cache.h>
+#include <xil_io.h>
+#include <xparameters.h>
+#include "xil_printf.h"
+#include "vitis/ad4134/ad713x.h"
+#include "vitis/ad4134/no_os_spi.h"
+#include "vitis/ad4134/xilinx_spi.h"
+#include "vitis/ad4134/no_os_delay.h"
+#include "vitis/ad4134/no_os_gpio.h"
+#include "vitis/ad4134/xilinx_gpio.h"
+#include "vitis/ad4134/no_os_error.h"
+#include "parameters.h"
+
+/* AXI DMAC registers */
+#define AXI_DMAC_REG_CTRL             0x400
+#define AXI_DMAC_CTRL_ENABLE          0x1
+#define AXI_DMAC_REG_TRANSFER_ID      0x404
+#define AXI_DMAC_REG_TRANSFER_SUBMIT  0x408
+#define AXI_DMAC_TRANSFER_SUBMIT      0x1
+#define AXI_DMAC_REG_FLAGS            0x40C
+#define AXI_DMAC_REG_DEST_ADDRESS     0x410
+#define AXI_DMAC_REG_X_LENGTH         0x418
+#define AXI_DMAC_REG_Y_LENGTH         0x41c
+#define AXI_DMAC_REG_DEST_STRIDE      0x420
+#define AXI_DMAC_REG_TRANSFER_DONE    0x428
+#define AXI_DMAC_REG_ACTIVE_ID        0x42C
+#define AXI_DMAC_REG_STATUS           0x430
+#define AXI_DMAC_REG_CURRENT_DEST     0x434
+
+/* DMA transfer configuration - uses defines from parameters.h */
+#define DMA_TRANSFER_BYTES  (CN0561_FMC_SAMPLE_NO * DMA_BYTES_PER_SAMPLE)
+
+static inline void dmac_write(uint32_t off, uint32_t val)
+{
+	Xil_Out32(CN0561_DMA_BASEADDR + off, val);
+}
+
+static inline uint32_t dmac_read(uint32_t off)
+{
+	return Xil_In32(CN0561_DMA_BASEADDR + off);
+}
+
+static inline int32_t sign_extend_24(uint32_t word)
+{
+	uint32_t raw = word & 0x00FFFFFFU;
+
+	if (raw & 0x00800000U)
+		raw |= 0xFF000000U;
+
+	return (int32_t)raw;
+}
+
+int main()
+{
+	struct ad713x_dev *cn0561_dev;
+	struct ad713x_init_param cn0561_init_param = {0};
+	uint32_t adc_channel;
+	int32_t ret;
+
+	static struct xil_spi_init_param spi_ps_init_params = {
+		.type = SPI_PS,
+	};
+	struct xil_gpio_init_param gpio_ps_param;
+	struct no_os_gpio_init_param cn0561_pnd = {
+		.number = GPIO_PDN,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param
+	};
+	struct no_os_gpio_init_param cn0561_mode = {
+		.number = GPIO_MODE,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param
+	};
+	struct no_os_gpio_init_param cn0561_resetn = {
+		.number = GPIO_RESETN,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param
+	};
+
+	gpio_ps_param.device_id = GPIO_DEVICE_ID;
+	gpio_ps_param.type = GPIO_PS;
+
+	cn0561_init_param.adc_data_len = ADC_24_BIT_DATA;
+	cn0561_init_param.clk_delay_en = false;
+	cn0561_init_param.crc_header = CRC_6;
+	cn0561_init_param.dev_id = ID_AD4134;
+	cn0561_init_param.format = QUAD_CH_PO;
+	cn0561_init_param.gpio_dclkio = NULL;
+	cn0561_init_param.gpio_dclkmode = NULL;
+	cn0561_init_param.gpio_cs_sync = NULL;
+	cn0561_init_param.gpio_pnd = &cn0561_pnd;
+	cn0561_init_param.gpio_mode = &cn0561_mode;
+	cn0561_init_param.gpio_resetn = &cn0561_resetn;
+	cn0561_init_param.mode_master_nslave = false;
+	cn0561_init_param.dclkmode_free_ngated = false;
+	cn0561_init_param.dclkio_out_nin = false;
+	cn0561_init_param.pnd = true;
+	cn0561_init_param.spi_init_prm.chip_select = CN0561_SPI_CS;
+	cn0561_init_param.spi_init_prm.device_id = SPI_DEVICE_ID;
+	cn0561_init_param.spi_init_prm.max_speed_hz = 10000000;
+	cn0561_init_param.spi_init_prm.mode = NO_OS_SPI_MODE_0;
+	cn0561_init_param.spi_init_prm.platform_ops = &xil_spi_ops;
+	cn0561_init_param.spi_init_prm.extra = (void *)&spi_ps_init_params;
+	cn0561_init_param.spi_common_dev = 0;
+
+	Xil_ICacheEnable();
+	Xil_DCacheEnable();
+
+	print("Initializing AD4134...\n\r");
+	printf("  SPI device ID: %d, CS: %d\n\r", SPI_DEVICE_ID, CN0561_SPI_CS);
+	printf("  GPIO device ID: %d\n\r", GPIO_DEVICE_ID);
+	printf("  GPIO RESETN: %d, PDN: %d, MODE: %d\n\r", GPIO_RESETN, GPIO_PDN, GPIO_MODE);
+	print("  Calling ad713x_init()...\n\r");
+	ret = ad713x_init(&cn0561_dev, &cn0561_init_param);
+	if (ret != 0) {
+		printf("ERROR: ad713x_init failed with code %ld!\n\r", (long)ret);
+		return -1;
+	}
+	print("  ad713x_init() succeeded\n\r");
+
+	for (adc_channel = CH0; adc_channel <= CH3; adc_channel++) {
+		ret = ad713x_dig_filter_sel_ch(cn0561_dev, SINC3, adc_channel);
+		if (ret != 0)
+			return -1;
+	}
+
+	no_os_mdelay(1000);
+
+	ret = ad713x_spi_reg_write(cn0561_dev, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
+	if (ret != 0)
+		return -1;
+	ret = ad713x_spi_reg_write(cn0561_dev, AD713X_REG_GPIO_DATA, 0x84);
+	if (ret != 0)
+		return -1;
+
+	/* Check DMA base address */
+	if (CN0561_DMA_BASEADDR == 0) {
+		print("ERROR: DMA base address not found in xparameters.h\n\r");
+		print("Make sure FPGA bitstream matches this software\n\r");
+		return -1;
+	}
+	printf("DMA base: 0x%08lx, DDR base: 0x%08lx\n\r",
+	       (unsigned long)CN0561_DMA_BASEADDR,
+	       (unsigned long)CN0561_DDR_BASEADDR);
+
+	/* DMA buffer in DDR */
+	uint32_t *dma_buf = (uint32_t *)(CN0561_DDR_BASEADDR + DMA_BUFFER_OFFSET);
+	uint32_t transfer_id;
+	uint32_t timeout_cnt;
+
+	/* Clear buffer and flush so DDR is clean for first DMA write */
+	memset(dma_buf, 0, DMA_TRANSFER_BYTES);
+	Xil_DCacheFlushRange((INTPTR)dma_buf, DMA_TRANSFER_BYTES);
+
+	/* Enable DMAC */
+	dmac_write(AXI_DMAC_REG_CTRL, AXI_DMAC_CTRL_ENABLE);
+	no_os_mdelay(1);
+
+	print("Streaming (uV, one sample per line)...\n\r");
+
+	while (1) {
+		/* Capture the transfer ID that will be assigned to this submission */
+		transfer_id = dmac_read(AXI_DMAC_REG_TRANSFER_ID) & 0x3;
+
+		/* Configure and submit */
+		dmac_write(AXI_DMAC_REG_DEST_ADDRESS, (uint32_t)(uintptr_t)dma_buf);
+		dmac_write(AXI_DMAC_REG_X_LENGTH, DMA_TRANSFER_BYTES - 1);
+		dmac_write(AXI_DMAC_REG_TRANSFER_SUBMIT, AXI_DMAC_TRANSFER_SUBMIT);
+
+		/* Poll for completion of this specific transfer */
+		timeout_cnt = 0;
+		while (!(dmac_read(AXI_DMAC_REG_TRANSFER_DONE) & (1u << transfer_id))) {
+			no_os_mdelay(1);
+			if (++timeout_cnt >= DMA_TIMEOUT_MS) {
+				print("ERROR: DMA timeout\n\r");
+				return -1;
+			}
+		}
+
+		/* Invalidate cache so CPU reads DMA-written data from DDR */
+		Xil_DCacheInvalidateRange((INTPTR)dma_buf, DMA_TRANSFER_BYTES);
+
+		/* Print sample[0] only: 128-bit beat = [CH0][CH1][CH2][CH3] */
+		/* uV = raw * 125 / 256  (LSB = 4.096V / 2^23) */
+		printf("%d, %+ld %+ld %+ld %+ld\n\r", CN0561_FMC_SAMPLE_NO,
+		       (long)(sign_extend_24(dma_buf[0]) * 125 / 256),
+		       (long)(sign_extend_24(dma_buf[1]) * 125 / 256),
+		       (long)(sign_extend_24(dma_buf[2]) * 125 / 256),
+		       (long)(sign_extend_24(dma_buf[3]) * 125 / 256));
+
+	}
+
+	return 0;
+}
