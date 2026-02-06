@@ -1,0 +1,11 @@
+*.log
+*.jou
+*.pb
+ad4134_fmc_tq15eg.cache
+ad4134_fmc_tq15eg.gen
+ad4134_fmc_tq15eg.hw
+ad4134_fmc_tq15eg.ip_user_files
+ad4134_fmc_tq15eg.runs
+ad4134_fmc_tq15eg.srcs
+ad4134_fmc_tq15eg.xpr
+
