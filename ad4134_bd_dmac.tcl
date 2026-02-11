@@ -104,6 +104,20 @@ ad_connect ad4134_din3 ad4134_data_0/data_in3
 ad_connect ad4134_data_0/dclk_out ad4134_dclk
 ad_connect ad4134_data_0/odr_out ad4134_odr
 
+#-------------------------------------------------------------------------------
+# Create external ports for the AD7134 data interface
+#-------------------------------------------------------------------------------
+create_bd_port -dir I ad7134_din0
+create_bd_port -dir I ad7134_din1
+create_bd_port -dir I ad7134_din2
+create_bd_port -dir I ad7134_din3
+create_bd_port -dir I ad7134_din4
+create_bd_port -dir I ad7134_din5
+create_bd_port -dir I ad7134_din6
+create_bd_port -dir I ad7134_din7
+create_bd_port -dir O ad7134_dclk
+create_bd_port -dir O ad7134_odr
+
 # ------------------------------------------------------------------------------
 # Data flow: ad4134_data -> AXIS packer -> AXIS FIFO -> AXI DMAC
 # ------------------------------------------------------------------------------

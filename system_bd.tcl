@@ -4,6 +4,7 @@
 ### SPDX short identifier: ADIBSD
 ###############################################################################
 
+source [file join [file dirname [info script]] tq15eg_2023_1.tcl]
 source ./zu_system_bd.tcl
 source $ad_hdl_dir/projects/scripts/adi_pd.tcl
 
@@ -32,7 +33,6 @@ ad_ip_parameter ila_adc CONFIG.C_PROBE0_WIDTH 1   ;# odr_out
 ad_ip_parameter ila_adc CONFIG.C_PROBE1_WIDTH 1   ;# dclk_out
 ad_ip_parameter ila_adc CONFIG.C_PROBE2_WIDTH 1   ;# ad4134_din
 ad_ip_parameter ila_adc CONFIG.C_PROBE3_WIDTH 1   ;# data_rdy
-#ad_ip_parameter ila_adc CONFIG.C_PROBE4_WIDTH 1   ;# bram_enable
 ad_ip_parameter ila_adc CONFIG.C_PROBE4_WIDTH 1   ;# tvalid
 ad_ip_parameter ila_adc CONFIG.C_PROBE5_WIDTH 1   ;# tready
 ad_ip_parameter ila_adc CONFIG.C_PROBE6_WIDTH 32  ;# tdata[31:0]
