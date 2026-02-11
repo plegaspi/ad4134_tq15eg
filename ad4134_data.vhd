@@ -4,7 +4,11 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity ad4134_data is
     generic(
-        DATA_WIDTH : integer := 24
+        DATA_WIDTH : integer := 24;
+        ODR_HIGH_TIME  : integer := 3;
+        ODR_LOW_TIME   : integer := 24;
+        ODR_WAIT_FIRST : integer := 1;
+        ODR_WAIT_LAST  : integer := 3
     );
     port(
         -- Global signals:
@@ -29,12 +33,9 @@ end ad4134_data;
 architecture rtl of ad4134_data is
 
     -- Constants:
-    constant SYS_CLK_FREQ   : integer := 50_000_000;
-    constant DIG_CLK_FREQ   : integer := 10_000_000;
-    constant ODR_HIGH_TIME  : integer := 3;
-    constant ODR_LOW_TIME   : integer := 24;
-    constant ODR_WAIT_FIRST : integer := 1;
-    constant ODR_WAIT_LAST  : integer := 3;
+    constant SYS_CLK_FREQ   : integer := 50_000_000; --UNUSED
+    constant DIG_CLK_FREQ   : integer := 10_000_000; --UNUSED
+
 
     -- Internal control registers:
     signal odr_cnt   : integer range 0 to ODR_LOW_TIME + ODR_HIGH_TIME;
@@ -48,16 +49,21 @@ architecture rtl of ad4134_data is
     signal shift_reg3 : std_logic_vector(DATA_WIDTH - 1 downto 0);
 
     -- ODR Tracker signals:
-    constant ODR_TOTAL_CLKS : integer := ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME + ODR_WAIT_LAST; -- 30 clock cycles, @ 10 MHz that is 
+    constant ODR_TOTAL_CLKS : integer := ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME + ODR_WAIT_LAST; -- 30 clock cycles, @ 10 MHz that is
     signal   odr_tracker    : integer range 0 to ODR_TOTAL_CLKS;
 
     -- Flags:
     signal dclk_active : std_logic;
 
     -- Slower clocks for data interface:
+    -- slow_clk is kept as a signal for dclk_out only; logic uses clock enables
     signal slow_clk : std_logic;
-    constant SLOW_CLK_MAX : integer := 4;
+    constant SLOW_CLK_MAX : integer := 1;
     signal slow_clk_counter : integer range 0 to SLOW_CLK_MAX;
+
+    -- Clock enables: combinatorial pulses on the clk edges where slow_clk would rise/fall
+    signal slow_clk_r_en : std_logic;  -- rising edge of slow_clk
+    signal slow_clk_f_en : std_logic;  -- falling edge of slow_clk
 
     -- Read flags:
     signal data_rdy_flag : std_logic;
@@ -67,8 +73,12 @@ begin
     dclk_int <= slow_clk; -- FOR NOW. Have to add generics to set up the clock and sample speeds
 
     dclk_out <= dclk_int when dclk_active = '1' else '0';
-    
+
     odr_out <= odr_int;
+
+    -- Combinatorial clock enables: high for one clk cycle at the slow_clk edge
+    slow_clk_r_en <= '1' when (slow_clk_counter = SLOW_CLK_MAX and slow_clk = '0') else '0';
+    slow_clk_f_en <= '1' when (slow_clk_counter = SLOW_CLK_MAX and slow_clk = '1') else '0';
 
 
     slow_clk_p : process(clk, rst_n) is
@@ -91,7 +101,7 @@ begin
     end process;
 
 
-    odr_p : process(slow_clk, rst_n) is
+    odr_p : process(clk, rst_n) is
     begin
         if (rst_n = '0') then
 
@@ -101,52 +111,57 @@ begin
             -- Flags:
             dclk_active <= '0';
 
-        elsif (rising_edge(slow_clk)) then
+        elsif (rising_edge(clk)) then
 
-            case odr_tracker is
+            if (slow_clk_r_en = '1') then
 
-                when 0 to ODR_HIGH_TIME - 1 => -- 0:2
+                case odr_tracker is
 
-                    odr_int <= '1';
+                    when 0 to ODR_HIGH_TIME - 1 => -- 0:2
 
-                    dclk_active <= '0';
+                        odr_int <= '1';
 
-                when ODR_HIGH_TIME to ODR_HIGH_TIME + ODR_WAIT_FIRST - 1 => -- 3:3
+                        dclk_active <= '0';
 
-                    odr_int     <= '0';
+                    when ODR_HIGH_TIME to ODR_HIGH_TIME + ODR_WAIT_FIRST - 1 => -- 3:3
 
-                    dclk_active <= '0';
+                        odr_int     <= '0';
 
-                when ODR_HIGH_TIME + ODR_WAIT_FIRST to ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME - 1 => -- 4:27
+                        dclk_active <= '0';
 
-                    odr_int     <= '0';
+                    when ODR_HIGH_TIME + ODR_WAIT_FIRST to ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME - 1 => -- 4:27
 
-                    dclk_active <= '1';
+                        odr_int     <= '0';
 
-                when ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME to ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME + ODR_WAIT_LAST - 1 => -- 28:29
+                        dclk_active <= '1';
 
-                    odr_int     <= '0';
+                    when ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME to ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME + ODR_WAIT_LAST - 1 => -- 28:29
 
-                    dclk_active <= '0';
+                        odr_int     <= '0';
 
-                when others =>
+                        dclk_active <= '0';
 
-                    odr_int     <= '0';
+                    when others =>
 
-                    dclk_active <= '0';
+                        odr_int     <= '0';
 
-            end case;
+                        dclk_active <= '0';
 
-            if (odr_tracker < ODR_TOTAL_CLKS) then
-                odr_tracker <= odr_tracker + 1;
-            else
-                odr_tracker <= 0;
+                end case;
+
+                if (odr_tracker < ODR_TOTAL_CLKS) then
+                    odr_tracker <= odr_tracker + 1;
+                else
+                    odr_tracker <= 0;
+                end if;
+
             end if;
 
         end if;
     end process;
 
-    read_p : process(slow_clk, rst_n) is 
+
+    read_p : process(clk, rst_n) is
     begin
         if (rst_n = '0') then
 
@@ -166,55 +181,59 @@ begin
 
             data_rdy_flag <= '0';
 
-        elsif (falling_edge(slow_clk)) then
+        elsif (rising_edge(clk)) then
 
-            if (dclk_active = '1') then
+            if (slow_clk_f_en = '1') then
 
-                if (bit_count > 0) then
+                if (dclk_active = '1') then
 
-                    shift_reg0(bit_count - 1) <= data_in0;
-                    shift_reg1(bit_count - 1) <= data_in1; 
-                    shift_reg2(bit_count - 1) <= data_in2; 
-                    shift_reg3(bit_count - 1) <= data_in3; 
+                    if (bit_count > 0) then
 
-                    bit_count <= bit_count - 1;
+                        shift_reg0(bit_count - 1) <= data_in0;
+                        shift_reg1(bit_count - 1) <= data_in1;
+                        shift_reg2(bit_count - 1) <= data_in2;
+                        shift_reg3(bit_count - 1) <= data_in3;
 
-                else
+                        bit_count <= bit_count - 1;
 
-                    data_out0 <= shift_reg0;
-                    data_out1 <= shift_reg1;
-                    data_out2 <= shift_reg2;
-                    data_out3 <= shift_reg3;
+                    else
 
-                    bit_count <= DATA_WIDTH;
+                        data_out0 <= shift_reg0;
+                        data_out1 <= shift_reg1;
+                        data_out2 <= shift_reg2;
+                        data_out3 <= shift_reg3;
+
+                        bit_count <= DATA_WIDTH;
 
 
-                end if;
+                    end if;
 
-                data_rdy <= '0';
-
-            else
-
-                if (bit_count = 0 and data_rdy_flag = '0') then -- this means the previous else was skipped
-
-                    data_out0 <= shift_reg0;
-                    data_out1 <= shift_reg1;
-                    data_out2 <= shift_reg2;
-                    data_out3 <= shift_reg3;
-
-                    data_rdy_flag <= '1';
-
-                    bit_count <= DATA_WIDTH;
-
-                elsif (data_rdy_flag = '1') then
-
-                    data_rdy <= '1';
-                    data_rdy_flag <= '0';
-
-                else
-
-                    data_rdy_flag <= '0';
                     data_rdy <= '0';
+
+                else
+
+                    if (bit_count = 0 and data_rdy_flag = '0') then -- this means the previous else was skipped
+
+                        data_out0 <= shift_reg0;
+                        data_out1 <= shift_reg1;
+                        data_out2 <= shift_reg2;
+                        data_out3 <= shift_reg3;
+
+                        data_rdy_flag <= '1';
+
+                        bit_count <= DATA_WIDTH;
+
+                    elsif (data_rdy_flag = '1') then
+
+                        data_rdy <= '1';
+                        data_rdy_flag <= '0';
+
+                    else
+
+                        data_rdy_flag <= '0';
+                        data_rdy <= '0';
+
+                    end if;
 
                 end if;
 
@@ -225,3 +244,4 @@ begin
 
 
 end rtl;
+

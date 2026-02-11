@@ -42,7 +42,7 @@ if {$sys_cpu_clk_src_pin eq ""} {
 set sys_cpu_clk_freq_hz [get_property CONFIG.FREQ_HZ $sys_cpu_clk_src_pin]
 set sys_cpu_clk_freq_mhz [format "%.6f" [expr {double($sys_cpu_clk_freq_hz) / 1000000.0}]]
 ad_ip_parameter clk_wiz_data CONFIG.PRIM_IN_FREQ $sys_cpu_clk_freq_mhz
-ad_ip_parameter clk_wiz_data CONFIG.CLKOUT1_REQUESTED_OUT_FREQ 50.000
+ad_ip_parameter clk_wiz_data CONFIG.CLKOUT1_REQUESTED_OUT_FREQ 75.000
 ad_ip_parameter clk_wiz_data CONFIG.USE_LOCKED false
 ad_ip_parameter clk_wiz_data CONFIG.USE_RESET false
 
@@ -70,7 +70,7 @@ ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_DEST 64
 
 ad_ip_instance util_axis_fifo axis_fifo_0
 ad_ip_parameter axis_fifo_0 CONFIG.DATA_WIDTH 128
-ad_ip_parameter axis_fifo_0 CONFIG.ADDRESS_WIDTH 10
+ad_ip_parameter axis_fifo_0 CONFIG.ADDRESS_WIDTH 12
 ad_ip_parameter axis_fifo_0 CONFIG.ASYNC_CLK 0
 
 # ------------------------------------------------------------------------------
