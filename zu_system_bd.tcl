@@ -22,6 +22,17 @@ create_bd_port -dir I spi0_sdo_i
 create_bd_port -dir O spi0_sdo_o
 create_bd_port -dir I spi0_sdi_i
 
+
+create_bd_port -dir O spi1_csn_2_o
+create_bd_port -dir O spi1_csn_1_o
+create_bd_port -dir O spi1_csn_0_o
+create_bd_port -dir I spi1_csn_i
+create_bd_port -dir I spi1_clk_i
+create_bd_port -dir O spi1_clk_o
+create_bd_port -dir I spi1_sdo_i
+create_bd_port -dir O spi1_sdo_o
+create_bd_port -dir I spi1_sdi_i
+
 #create_bd_port -dir O -from 2 -to 0 spi1_csn
 #create_bd_port -dir O spi1_sclk
 #create_bd_port -dir O spi1_mosi
@@ -36,6 +47,7 @@ create_bd_port -dir O -from 94 -to 0 gpio_t
 ad_ip_instance zynq_ultra_ps_e sys_ps8
 apply_bd_automation -rule xilinx.com:bd_rule:zynq_ultra_ps_e \
   -config {apply_board_preset 1}  [get_bd_cells sys_ps8]
+set_property -dict [apply_preset [get_bd_cells sys_ps8]] [get_bd_cells sys_ps8]
 
 ad_ip_parameter sys_ps8 CONFIG.PSU__PSS_REF_CLK__FREQMHZ 33.333333333
 ad_ip_parameter sys_ps8 CONFIG.PSU__USE__M_AXI_GP0 0
@@ -45,12 +57,8 @@ ad_ip_parameter sys_ps8 CONFIG.PSU__MAXIGP2__DATA_WIDTH 32
 ad_ip_parameter sys_ps8 CONFIG.PSU__FPGA_PL0_ENABLE 1
 ad_ip_parameter sys_ps8 CONFIG.PSU__CRL_APB__PL0_REF_CTRL__SRCSEL {IOPLL}
 ad_ip_parameter sys_ps8 CONFIG.PSU__CRL_APB__PL0_REF_CTRL__FREQMHZ 100
-ad_ip_parameter sys_ps8 CONFIG.PSU__FPGA_PL1_ENABLE 1
-ad_ip_parameter sys_ps8 CONFIG.PSU__FPGA_PL2_ENABLE 1
-ad_ip_parameter sys_ps8 CONFIG.PSU__CRL_APB__PL1_REF_CTRL__SRCSEL {IOPLL}
-ad_ip_parameter sys_ps8 CONFIG.PSU__CRL_APB__PL1_REF_CTRL__FREQMHZ 250
-ad_ip_parameter sys_ps8 CONFIG.PSU__CRL_APB__PL2_REF_CTRL__SRCSEL {IOPLL}
-ad_ip_parameter sys_ps8 CONFIG.PSU__CRL_APB__PL2_REF_CTRL__FREQMHZ 500
+ad_ip_parameter sys_ps8 CONFIG.PSU__FPGA_PL1_ENABLE 0
+ad_ip_parameter sys_ps8 CONFIG.PSU__FPGA_PL2_ENABLE 0
 ad_ip_parameter sys_ps8 CONFIG.PSU__USE__IRQ0 1
 ad_ip_parameter sys_ps8 CONFIG.PSU__USE__IRQ1 1
 ad_ip_parameter sys_ps8 CONFIG.PSU__GPIO_EMIO__PERIPHERAL__ENABLE 1
@@ -73,41 +81,26 @@ set_property -dict [list \
 
 ad_ip_instance proc_sys_reset sys_rstgen
 ad_ip_parameter sys_rstgen CONFIG.C_EXT_RST_WIDTH 1
-ad_ip_instance proc_sys_reset sys_250m_rstgen
-ad_ip_parameter sys_250m_rstgen CONFIG.C_EXT_RST_WIDTH 1
-#ad_ip_instance proc_sys_reset sys_500m_rstgen
-#ad_ip_parameter sys_500m_rstgen CONFIG.C_EXT_RST_WIDTH 1
 
 # system reset/clock definitions
 
 ad_connect  sys_cpu_clk sys_ps8/pl_clk0
-ad_connect  sys_250m_clk sys_ps8/pl_clk1
-#ad_connect  sys_500m_clk sys_ps8/pl_clk2
 
 ad_connect  sys_ps8/pl_resetn0 sys_rstgen/ext_reset_in
 ad_connect  sys_cpu_clk sys_rstgen/slowest_sync_clk
-ad_connect  sys_ps8/pl_resetn0 sys_250m_rstgen/ext_reset_in
-ad_connect  sys_250m_clk sys_250m_rstgen/slowest_sync_clk
-#ad_connect  sys_ps8/pl_resetn0 sys_500m_rstgen/ext_reset_in
-#ad_connect  sys_500m_clk sys_500m_rstgen/slowest_sync_clk
 
 ad_connect  sys_cpu_reset sys_rstgen/peripheral_reset
 ad_connect  sys_cpu_resetn sys_rstgen/peripheral_aresetn
-ad_connect  sys_250m_reset sys_250m_rstgen/peripheral_reset
-ad_connect  sys_250m_resetn sys_250m_rstgen/peripheral_aresetn
-#ad_connect  sys_500m_reset sys_500m_rstgen/peripheral_reset
-#ad_connect  sys_500m_resetn sys_500m_rstgen/peripheral_aresetn
 
-# generic system clocks&resets pointers
+# generic system clocks&resets pointers (all on pl_clk0 = 100 MHz)
 
 set sys_cpu_clk            [get_bd_nets sys_cpu_clk]
-set sys_dma_clk            [get_bd_nets sys_250m_clk]
-#set sys_iodelay_clk        [get_bd_nets sys_500m_clk]
+set sys_dma_clk            [get_bd_nets sys_cpu_clk]
 
 set  sys_cpu_reset         [get_bd_nets sys_cpu_reset]
 set  sys_cpu_resetn        [get_bd_nets sys_cpu_resetn]
-set  sys_dma_reset         [get_bd_nets sys_250m_reset]
-set  sys_dma_resetn        [get_bd_nets sys_250m_resetn]
+set  sys_dma_reset         [get_bd_nets sys_cpu_reset]
+set  sys_dma_resetn        [get_bd_nets sys_cpu_resetn]
 #set  sys_iodelay_reset     [get_bd_nets sys_500m_reset]
 #set  sys_iodelay_resetn    [get_bd_nets sys_500m_resetn]
 
@@ -140,6 +133,16 @@ ad_connect spi0_clk_o   sys_ps8/emio_spi0_sclk_o
 ad_connect spi0_sdo_o   sys_ps8/emio_spi0_m_o
 ad_connect spi0_sdo_i   sys_ps8/emio_spi0_s_i
 ad_connect spi0_sdi_i   sys_ps8/emio_spi0_m_i
+
+ad_connect spi1_csn_2_o sys_ps8/emio_spi1_ss2_o_n
+ad_connect spi1_csn_1_o sys_ps8/emio_spi1_ss1_o_n
+ad_connect spi1_csn_0_o sys_ps8/emio_spi1_ss_o_n
+ad_connect spi1_csn_i   sys_ps8/emio_spi1_ss_i_n
+ad_connect spi1_clk_i   sys_ps8/emio_spi1_sclk_i
+ad_connect spi1_clk_o   sys_ps8/emio_spi1_sclk_o
+ad_connect spi1_sdo_o   sys_ps8/emio_spi1_m_o
+ad_connect spi1_sdo_i   sys_ps8/emio_spi1_s_i
+ad_connect spi1_sdi_i   sys_ps8/emio_spi1_m_i
 
 #ad_ip_instance xlconcat spi1_csn_concat
 #ad_ip_parameter spi1_csn_concat CONFIG.NUM_PORTS 3

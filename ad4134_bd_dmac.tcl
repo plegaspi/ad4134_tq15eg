@@ -22,6 +22,21 @@ create_bd_port -dir O ad4134_dclk
 create_bd_port -dir O ad4134_odr
 
 # ------------------------------------------------------------------------------
+# Create external ports for AD7134 data interface
+# ------------------------------------------------------------------------------
+
+create_bd_port -dir I ad7134_din0
+create_bd_port -dir I ad7134_din1
+create_bd_port -dir I ad7134_din2
+create_bd_port -dir I ad7134_din3
+create_bd_port -dir I ad7134_din4
+create_bd_port -dir I ad7134_din5
+create_bd_port -dir I ad7134_din6
+create_bd_port -dir I ad7134_din7
+create_bd_port -dir O ad7134_dclk
+create_bd_port -dir O ad7134_odr
+
+# ------------------------------------------------------------------------------
 # Custom VHDL Modules
 # ------------------------------------------------------------------------------
 
@@ -60,7 +75,7 @@ ad_ip_parameter axi_ad4134_dma CONFIG.DMA_TYPE_DEST 0
 ad_ip_parameter axi_ad4134_dma CONFIG.CYCLIC 0
 ad_ip_parameter axi_ad4134_dma CONFIG.SYNC_TRANSFER_START 0
 ad_ip_parameter axi_ad4134_dma CONFIG.DMA_2D_TRANSFER 0
-ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_SRC 128
+ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_SRC 512
 ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_DEST 64
 
 # ------------------------------------------------------------------------------
@@ -69,7 +84,7 @@ ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_DEST 64
 # ------------------------------------------------------------------------------
 
 ad_ip_instance util_axis_fifo axis_fifo_0
-ad_ip_parameter axis_fifo_0 CONFIG.DATA_WIDTH 128
+ad_ip_parameter axis_fifo_0 CONFIG.DATA_WIDTH 512
 ad_ip_parameter axis_fifo_0 CONFIG.ADDRESS_WIDTH 12
 ad_ip_parameter axis_fifo_0 CONFIG.ASYNC_CLK 0
 
@@ -105,28 +120,40 @@ ad_connect ad4134_data_0/dclk_out ad4134_dclk
 ad_connect ad4134_data_0/odr_out ad4134_odr
 
 #-------------------------------------------------------------------------------
-# Create external ports for the AD7134 data interface
+# AD7134 Data Interface Connections (direct port-to-module)
 #-------------------------------------------------------------------------------
-create_bd_port -dir I ad7134_din0
-create_bd_port -dir I ad7134_din1
-create_bd_port -dir I ad7134_din2
-create_bd_port -dir I ad7134_din3
-create_bd_port -dir I ad7134_din4
-create_bd_port -dir I ad7134_din5
-create_bd_port -dir I ad7134_din6
-create_bd_port -dir I ad7134_din7
-create_bd_port -dir O ad7134_dclk
-create_bd_port -dir O ad7134_odr
+ad_connect ad7134_din0 ad4134_data_0/data_in4
+ad_connect ad7134_din1 ad4134_data_0/data_in5
+ad_connect ad7134_din2 ad4134_data_0/data_in6
+ad_connect ad7134_din3 ad4134_data_0/data_in7
+ad_connect ad7134_din4 ad4134_data_0/data_in8
+ad_connect ad7134_din5 ad4134_data_0/data_in9
+ad_connect ad7134_din6 ad4134_data_0/data_in10
+ad_connect ad7134_din7 ad4134_data_0/data_in11
+
+ad_connect ad4134_data_0/dclk_out1 ad7134_dclk
+ad_connect ad4134_data_0/odr_out1 ad7134_odr
+
 
 # ------------------------------------------------------------------------------
 # Data flow: ad4134_data -> AXIS packer -> AXIS FIFO -> AXI DMAC
 # ------------------------------------------------------------------------------
 
-ad_connect ad4134_data_0/data_out0 ad4134_axis_0/data_in0
-ad_connect ad4134_data_0/data_out1 ad4134_axis_0/data_in1
-ad_connect ad4134_data_0/data_out2 ad4134_axis_0/data_in2
-ad_connect ad4134_data_0/data_out3 ad4134_axis_0/data_in3
-ad_connect ad4134_data_0/data_rdy  ad4134_axis_0/data_rdy
+ad_connect ad4134_data_0/data_out0  ad4134_axis_0/data_in0
+ad_connect ad4134_data_0/data_out1  ad4134_axis_0/data_in1
+ad_connect ad4134_data_0/data_out2  ad4134_axis_0/data_in2
+ad_connect ad4134_data_0/data_out3  ad4134_axis_0/data_in3
+ad_connect ad4134_data_0/data_out4  ad4134_axis_0/data_in4
+ad_connect ad4134_data_0/data_out5  ad4134_axis_0/data_in5
+ad_connect ad4134_data_0/data_out6  ad4134_axis_0/data_in6
+ad_connect ad4134_data_0/data_out7  ad4134_axis_0/data_in7
+ad_connect ad4134_data_0/data_out8  ad4134_axis_0/data_in8
+ad_connect ad4134_data_0/data_out9  ad4134_axis_0/data_in9
+ad_connect ad4134_data_0/data_out10 ad4134_axis_0/data_in10
+ad_connect ad4134_data_0/data_out11 ad4134_axis_0/data_in11
+ad_connect ad4134_data_0/data_rdy   ad4134_axis_0/data_rdy
+
+
 
 # Packer -> FIFO (tlast not connected: TLAST_EN=0 on FIFO, always 0 anyway)
 ad_connect ad4134_axis_0/m_axis_tdata  axis_fifo_0/s_axis_data

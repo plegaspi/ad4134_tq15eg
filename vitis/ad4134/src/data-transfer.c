@@ -47,21 +47,20 @@ void process_stream_request(void *p)
 	int connection_alive = 1;
 
 	while (connection_alive) {
-		XTime time_start, time_end;
-		XTime_GetTime(&time_start);
+		uint64_t start_fill_time = get_time_us();
 		if (fill_buffer() != 0) {
 		    xil_printf("SPI/DMA error, aborting send\r\n");
 		    connection_alive = 0;
 		    break;
 		}
 
-		XTime_GetTime(&time_end);
+		uint64_t end_fill_time = get_time_us();
 
-		if (printed != 1) {
-			printf("Offload Time: %lf s\r\n", ((double)(time_end - time_start) / (double)COUNTS_PER_SECOND));
-			printed = 1;
-		}
-
+		//if (printed != 1) {
+			//printf("Offload Time: %lf s\r\n", ((double)(time_end - time_start) / (double)COUNTS_PER_SECOND));
+			//printed = 0;
+		//}
+		printf("Offload Time: %llu us \r\n", end_fill_time - start_fill_time);
 		buffer_idx = 0;
 		/*Xil_DCacheInvalidateRange((INTPTR)buffers[buffer_idx].data, SAMPLE_DATA * sizeof(uint32_t));
 		for (int i = 0; i < 1; i++ ) {

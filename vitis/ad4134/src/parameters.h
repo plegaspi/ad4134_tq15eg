@@ -67,8 +67,8 @@
 #endif
 
 /* DMA configuration for tq15eg_data DMAC design */
-#define DMA_WORDS_PER_SAMPLE    16u//4u      /* 128-bit AXIS beat = 4x32-bit */
-#define DMA_BYTES_PER_SAMPLE    64u//16u
+#define DMA_WORDS_PER_SAMPLE    4u//16u//4u      /* 128-bit AXIS beat = 4x32-bit */
+#define DMA_BYTES_PER_SAMPLE    64u//64u//16u
 #define DMA_BUFFER_OFFSET       0x01000000u  /* Offset from DDR base */
 #ifdef PLATFORM_ZYNQMP
 #define GPIO_OFFSET				78
@@ -87,7 +87,30 @@
 #define GPIO_6				GPIO_OFFSET + 41
 #define GPIO_7				GPIO_OFFSET + 42
 #define CN0561_FMC_CH_NO		1
-#define CN0561_FMC_SAMPLE_NO	2048
+#define CN0561_FMC_SAMPLE_NO	512
+
+#define AD7134_1_SPI_CS			0
+#define AD7134_2_SPI_CS			1
+#define GPIO_RESETN_1			GPIO_OFFSET + 32
+#define GPIO_RESETN_2			GPIO_OFFSET + 33
+#define GPIO_PDN_1			GPIO_OFFSET + 34
+#define GPIO_PDN_2			GPIO_OFFSET + 35
+#define GPIO_MODE_1			GPIO_OFFSET + 36
+#define GPIO_MODE_2			GPIO_OFFSET + 37
+#define GPIO_0				GPIO_OFFSET + 38
+#define GPIO_1				GPIO_OFFSET + 39
+#define GPIO_2				GPIO_OFFSET + 40
+#define GPIO_3				GPIO_OFFSET + 41
+#define GPIO_4				GPIO_OFFSET + 42
+#define GPIO_5				GPIO_OFFSET + 43
+#define GPIO_6				GPIO_OFFSET + 44
+#define GPIO_7				GPIO_OFFSET + 45
+#define GPIO_DCLKIO_1			GPIO_OFFSET + 46
+#define GPIO_DCLKIO_2			GPIO_OFFSET + 47
+#define GPIO_PINBSPI			GPIO_OFFSET + 48
+#define GPIO_DCLKMODE			GPIO_OFFSET + 49
+#define GPIO_CS_SYNC			GPIO_OFFSET + 50
+#define GPIO_CS_SYNC_1			GPIO_OFFSET + 51
 
 #define ADC_BUFFER_SIZE			CN0561_FMC_SAMPLE_NO
 

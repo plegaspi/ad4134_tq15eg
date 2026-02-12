@@ -129,11 +129,11 @@ int fill_buffer() {
 	/* Poll for completion of this specific transfer */
 	timeout_cnt = 0;
 	while (!(dmac_read(AXI_DMAC_REG_TRANSFER_DONE) & (1u << transfer_id))) {
-		no_os_mdelay(1);
+		/*no_os_mdelay(1);
 		if (++timeout_cnt >= DMA_TIMEOUT_MS) {
 			print("ERROR: DMA timeout\n\r");
 			return -1;
-		}
+		}*/
 	}
 
 	/* Invalidate cache so CPU reads DMA-written data from DDR */
@@ -190,6 +190,9 @@ int fill_buffer() {
 int main()
 {
 		struct ad713x_dev *cn0561_dev;
+		struct ad713x_dev *ad7134_dev0;
+		struct ad713x_dev *ad7134_dev1;
+
 		struct ad713x_init_param cn0561_init_param = {0};
 		uint32_t adc_channel;
 		int32_t ret;
@@ -197,7 +200,9 @@ int main()
 		static struct xil_spi_init_param spi_ps_init_params = {
 			.type = SPI_PS,
 		};
+
 		struct xil_gpio_init_param gpio_ps_param;
+
 		struct no_os_gpio_init_param cn0561_pnd = {
 			.number = GPIO_PDN,
 			.platform_ops = &xil_gpio_ops,
