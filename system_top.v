@@ -52,21 +52,11 @@ module system_top (
 
   // ad4134 data interface (directly from custom data capture module)
   output          ad4134_dclk,
-  input           ad4134_din0,
-  input           ad4134_din1,
-  input           ad4134_din2,
-  input           ad4134_din3,
+  input   [3:0]   ad4134_din,
   output          ad4134_odr,
 
   output          ad7134_dclk,
-  input           ad7134_din0,
-  input           ad7134_din1,
-  input           ad7134_din2,
-  input           ad7134_din3,
-  input           ad7134_din4,
-  input           ad7134_din5,
-  input           ad7134_din6,
-  input           ad7134_din7,
+  input   [7:0]   ad7134_din,
   output          ad7134_odr,
 
   // ad4134 GPIO lines
@@ -74,14 +64,7 @@ module system_top (
   inout           ad4134_pdn,
   inout           ad4134_mode,
   inout           ad4134_pinbspi,
-  inout           ad4134_gpio0,
-  inout           ad4134_gpio1,
-  inout           ad4134_gpio2,
-  inout           ad4134_gpio3,
-  inout           ad4134_gpio4,
-  inout           ad4134_gpio5,
-  inout           ad4134_gpio6,
-  inout           ad4134_gpio7,
+  inout  [7:0]    ad4134_gpio,
   inout           ad4134_dclk_mode,
   inout           ad4134_dclkio,
 
@@ -120,14 +103,7 @@ module system_top (
             ad7134_pdn,         // [47:46]
             ad4134_dclkio,      // [45]
             ad4134_dclk_mode,   // [44]
-            ad4134_gpio7,       // [43]
-            ad4134_gpio6,       // [42]
-            ad4134_gpio5,       // [41]
-            ad4134_gpio4,       // [40]
-            ad4134_gpio3,       // [39]
-            ad4134_gpio2,       // [38]
-            ad4134_gpio1,       // [37]
-            ad4134_gpio0,       // [36]
+            ad4134_gpio,        // [43:36]
             ad4134_pinbspi,     // [35]
             ad4134_mode,        // [34]
             ad4134_pdn,         // [33]
@@ -168,21 +144,11 @@ module system_top (
     .spi1_sdo_o (ad7134_spi_sdo),
 
     // Custom data capture interface (directly exposed from block design)
-    .ad4134_din0 (ad4134_din0),
-    .ad4134_din1 (ad4134_din1),
-    .ad4134_din2 (ad4134_din2),
-    .ad4134_din3 (ad4134_din3),
+    .ad4134_din (ad4134_din),
     .ad4134_dclk (ad4134_dclk),
     .ad4134_odr  (ad4134_odr),
 
-    .ad7134_din0 (ad7134_din0),
-    .ad7134_din1 (ad7134_din1),
-    .ad7134_din2 (ad7134_din2),
-    .ad7134_din3 (ad7134_din3),
-    .ad7134_din4 (ad7134_din4),
-    .ad7134_din5 (ad7134_din5),
-    .ad7134_din6 (ad7134_din6),
-    .ad7134_din7 (ad7134_din7),
+    .ad7134_din (ad7134_din),
     .ad7134_dclk (ad7134_dclk),
     .ad7134_odr  (ad7134_odr)
 

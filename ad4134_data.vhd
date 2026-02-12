@@ -4,6 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity ad4134_data is
     generic(
+        NUM_CHANNELS : integer := 4;
         DATA_WIDTH : integer := 24;
         ODR_HIGH_TIME  : integer := 3;
         ODR_LOW_TIME   : integer := 24;
@@ -14,38 +15,15 @@ entity ad4134_data is
         -- Global signals:
         clk        : in  std_logic;
         rst_n      : in  std_logic;
+        
         -- AD4134 signals:
-        data_in0   : in  std_logic;
-        data_in1   : in  std_logic;
-        data_in2   : in  std_logic;
-        data_in3   : in  std_logic;
+        data_in    : in std_logic_vector(NUM_CHANNELS -1 downto 0);
         dclk_out   : out std_logic;
         odr_out    : out std_logic;
         
-        -- AD7134 signals:
-        data_in4   : in  std_logic;
-        data_in5   : in  std_logic;
-        data_in6   : in  std_logic;
-        data_in7   : in  std_logic;
-        data_in8   : in  std_logic;
-        data_in9   : in  std_logic;
-        data_in10  : in  std_logic;
-        data_in11  : in  std_logic;
-        dclk_out1   : out std_logic;
-        odr_out1   : out std_logic;
+    
         -- Output signals:
-        data_out0  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out1  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out2  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out3  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out4  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out5  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out6  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out7  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out8  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out9  : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out10 : out std_logic_vector(DATA_WIDTH - 1 downto 0);
-        data_out11 : out std_logic_vector(DATA_WIDTH - 1 downto 0);
+        data_out : out std_logic_vector(NUM_CHANNELS*DATA_WIDTH-1 downto 0);
         data_rdy   : out std_logic
     );
 end ad4134_data;
@@ -63,18 +41,7 @@ architecture rtl of ad4134_data is
     signal dclk_int  : std_logic := '0';
     signal bit_count : integer range 0 to DATA_WIDTH;
 
-    signal shift_reg0  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg1  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg2  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg3  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg4  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg5  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg6  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg7  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg8  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg9  : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg10 : std_logic_vector(DATA_WIDTH - 1 downto 0);
-    signal shift_reg11 : std_logic_vector(DATA_WIDTH - 1 downto 0);
+    signal shift_reg  : std_logic_vector(NUM_CHANNELS*DATA_WIDTH - 1 downto 0);
 
     -- ODR Tracker signals:
     constant ODR_TOTAL_CLKS : integer := ODR_HIGH_TIME + ODR_WAIT_FIRST + ODR_LOW_TIME + ODR_WAIT_LAST; -- 30 clock cycles, @ 10 MHz that is
@@ -101,10 +68,8 @@ begin
     dclk_int <= slow_clk; -- FOR NOW. Have to add generics to set up the clock and sample speeds
 
     dclk_out <= dclk_int when dclk_active = '1' else '0';
-    dclk_out1 <= dclk_int when dclk_active = '1' else '0';
 
     odr_out <= odr_int;
-    odr_out1 <= odr_int;
 
     -- Combinatorial clock enables: high for one clk cycle at the slow_clk edge
     slow_clk_r_en <= '1' when (slow_clk_counter = SLOW_CLK_MAX and slow_clk = '0') else '0';
@@ -197,31 +162,8 @@ begin
 
             bit_count <= DATA_WIDTH;
 
-            shift_reg0 <= (others => '0');
-            shift_reg1 <= (others => '0');
-            shift_reg2 <= (others => '0');
-            shift_reg3 <= (others => '0');
-            shift_reg4 <= (others => '0');
-            shift_reg5 <= (others => '0');
-            shift_reg6 <= (others => '0');
-            shift_reg7 <= (others => '0');
-            shift_reg8 <= (others => '0');
-            shift_reg9 <= (others => '0');
-            shift_reg10 <= (others => '0');
-            shift_reg11 <= (others => '0');
-
-            data_out0 <= (others => '0');
-            data_out1 <= (others => '0');
-            data_out2 <= (others => '0');
-            data_out3 <= (others => '0');
-            data_out4 <= (others => '0');
-            data_out5 <= (others => '0');
-            data_out6 <= (others => '0');
-            data_out7 <= (others => '0');
-            data_out8 <= (others => '0');
-            data_out9 <= (others => '0');
-            data_out10 <= (others => '0');
-            data_out11 <= (others => '0');
+            shift_reg <= (others => '0');
+            data_out <= (others => '0');
 
             data_rdy <= '0';
 
@@ -235,35 +177,16 @@ begin
 
                     if (bit_count > 0) then
 
-                        shift_reg0(bit_count - 1)  <= data_in0;
-                        shift_reg1(bit_count - 1)  <= data_in1;
-                        shift_reg2(bit_count - 1)  <= data_in2;
-                        shift_reg3(bit_count - 1)  <= data_in3;
-                        shift_reg4(bit_count - 1)  <= data_in4;
-                        shift_reg5(bit_count - 1)  <= data_in5;
-                        shift_reg6(bit_count - 1)  <= data_in6;
-                        shift_reg7(bit_count - 1)  <= data_in7;
-                        shift_reg8(bit_count - 1)  <= data_in8;
-                        shift_reg9(bit_count - 1)  <= data_in9;
-                        shift_reg10(bit_count - 1) <= data_in10;
-                        shift_reg11(bit_count - 1) <= data_in11;
+                        for ch in 0 to NUM_CHANNELS-1 loop
+                            shift_reg(ch*DATA_WIDTH + (bit_count-1)) <= data_in(ch);
+                        end loop;
+
 
                         bit_count <= bit_count - 1;
 
                     else
 
-                        data_out0  <= shift_reg0;
-                        data_out1  <= shift_reg1;
-                        data_out2  <= shift_reg2;
-                        data_out3  <= shift_reg3;
-                        data_out4  <= shift_reg4;
-                        data_out5  <= shift_reg5;
-                        data_out6  <= shift_reg6;
-                        data_out7  <= shift_reg7;
-                        data_out8  <= shift_reg8;
-                        data_out9  <= shift_reg9;
-                        data_out10 <= shift_reg10;
-                        data_out11 <= shift_reg11;
+                        data_out <= shift_reg;
 
                         bit_count <= DATA_WIDTH;
 
@@ -276,18 +199,7 @@ begin
 
                     if (bit_count = 0 and data_rdy_flag = '0') then -- this means the previous else was skipped
 
-                        data_out0  <= shift_reg0;
-                        data_out1  <= shift_reg1;
-                        data_out2  <= shift_reg2;
-                        data_out3  <= shift_reg3;
-                        data_out4  <= shift_reg4;
-                        data_out5  <= shift_reg5;
-                        data_out6  <= shift_reg6;
-                        data_out7  <= shift_reg7;
-                        data_out8  <= shift_reg8;
-                        data_out9  <= shift_reg9;
-                        data_out10 <= shift_reg10;
-                        data_out11 <= shift_reg11;
+                        data_out <= shift_reg;
 
 
                         data_rdy_flag <= '1';

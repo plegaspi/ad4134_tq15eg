@@ -25,23 +25,23 @@ set_property -dict {PACKAGE_PIN AH3 IOSTANDARD LVCMOS18} [get_ports ad7134_spi_c
 # ad4134 data interface
 
 set_property -dict {PACKAGE_PIN AA7  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad4134_dclk];   ## FMC_LPC_CLK0_M2C_P
-set_property -dict {PACKAGE_PIN Y3  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad4134_din0]; ## FMC_LPC_LA00_N_CC
-set_property -dict {PACKAGE_PIN AC1  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad4134_din1]; ## FMC_LPC_LA06_N
-set_property -dict {PACKAGE_PIN V2  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad4134_din2]; ## FMC_LPC_LA02_P
-set_property -dict {PACKAGE_PIN V1  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad4134_din3]; ## FMC_LPC_LA02_N
+set_property -dict {PACKAGE_PIN Y3  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports  ad4134_din[0]]; ## FMC_LPC_LA00_N_CC
+set_property -dict {PACKAGE_PIN AC1  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad4134_din[1]]; ## FMC_LPC_LA06_N
+set_property -dict {PACKAGE_PIN V2  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports  ad4134_din[2]]; ## FMC_LPC_LA02_P
+set_property -dict {PACKAGE_PIN V1  IOSTANDARD LVCMOS18 IOB TRUE} [get_ports  ad4134_din[3]]; ## FMC_LPC_LA02_N
 set_property -dict {PACKAGE_PIN Y4  IOSTANDARD LVCMOS18} [get_ports ad4134_odr];             ## FMC_LPC_LA00_P_CC
 
 # ad7134 data interface
 
 set_property -dict {PACKAGE_PIN AE7 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_dclk];   ## FMC_LPC_CLK0_M2C_P
-set_property -dict {PACKAGE_PIN AF5 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din0];    ## FMC_LPC_LA00_N_CC
-set_property -dict {PACKAGE_PIN AJ2 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din1];    ## FMC_LPC_LA06_N
-set_property -dict {PACKAGE_PIN AD2 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din2];    ## FMC_LPC_LA02_P
-set_property -dict {PACKAGE_PIN AD1 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din3];    ## FMC_LPC_LA02_N
-set_property -dict {PACKAGE_PIN AE3 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din4];    ## FMC_LPC_LA08_P
-set_property -dict {PACKAGE_PIN AF3 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din5];    ## FMC_LPC_LA08_N
-set_property -dict {PACKAGE_PIN AE2 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din6];    ## FMC_LPC_LA09_P
-set_property -dict {PACKAGE_PIN AE1 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din7];    ## FMC_LPC_LA09_N
+set_property -dict {PACKAGE_PIN AF5 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din[0]];    ## FMC_LPC_LA00_N_CC
+set_property -dict {PACKAGE_PIN AJ2 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din[1]];    ## FMC_LPC_LA06_N
+set_property -dict {PACKAGE_PIN AD2 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din[2]];    ## FMC_LPC_LA02_P
+set_property -dict {PACKAGE_PIN AD1 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din[3]];    ## FMC_LPC_LA02_N
+set_property -dict {PACKAGE_PIN AE3 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din[4]];    ## FMC_LPC_LA08_P
+set_property -dict {PACKAGE_PIN AF3 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din[5]];    ## FMC_LPC_LA08_N
+set_property -dict {PACKAGE_PIN AE2 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din[6]];    ## FMC_LPC_LA09_P
+set_property -dict {PACKAGE_PIN AE1 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_din[7]];    ## FMC_LPC_LA09_N
 set_property -dict {PACKAGE_PIN AE5 IOSTANDARD LVCMOS18} [get_ports ad7134_odr];             ## FMC_LPC_LA00_P_CC
 
 # ad4134 GPIO lines
@@ -49,14 +49,14 @@ set_property -dict {PACKAGE_PIN AE5 IOSTANDARD LVCMOS18} [get_ports ad7134_odr];
 set_property -dict {PACKAGE_PIN Y12  IOSTANDARD LVCMOS18} [get_ports ad4134_resetn];          ## FMC_LPC_LA16_P
 set_property -dict {PACKAGE_PIN U5  IOSTANDARD LVCMOS18} [get_ports ad4134_pdn];             ## FMC_LPC_LA07_P
 set_property -dict {PACKAGE_PIN AA2  IOSTANDARD LVCMOS18} [get_ports ad4134_mode];            ## FMC_LPC_LA04_P
-set_property -dict {PACKAGE_PIN W5  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio0];           ## FMC_LPC_LA10_P
-set_property -dict {PACKAGE_PIN W4  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio1];           ## FMC_LPC_LA10_N
-set_property -dict {PACKAGE_PIN AB6 IOSTANDARD LVCMOS18} [get_ports ad4134_gpio2];           ## FMC_LPC_LA11_P
-set_property -dict {PACKAGE_PIN AB5  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio3];           ## FMC_LPC_LA11_N
-set_property -dict {PACKAGE_PIN W7  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio4];           ## FMC_LPC_LA12_P
-set_property -dict {PACKAGE_PIN W6  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio5];           ## FMC_LPC_LA12_N
-set_property -dict {PACKAGE_PIN AB8  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio6];           ## FMC_LPC_LA13_P
-set_property -dict {PACKAGE_PIN AC8  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio7];           ## FMC_LPC_LA13_N
+set_property -dict {PACKAGE_PIN W5  IOSTANDARD LVCMOS18} [get_ports  ad4134_gpio[0]];           ## FMC_LPC_LA10_P
+set_property -dict {PACKAGE_PIN W4  IOSTANDARD LVCMOS18} [get_ports  ad4134_gpio[1]];           ## FMC_LPC_LA10_N
+set_property -dict {PACKAGE_PIN AB6 IOSTANDARD LVCMOS18} [get_ports  ad4134_gpio[2]];           ## FMC_LPC_LA11_P
+set_property -dict {PACKAGE_PIN AB5  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio[3]];           ## FMC_LPC_LA11_N
+set_property -dict {PACKAGE_PIN W7  IOSTANDARD LVCMOS18} [get_ports  ad4134_gpio[4]];           ## FMC_LPC_LA12_P
+set_property -dict {PACKAGE_PIN W6  IOSTANDARD LVCMOS18} [get_ports  ad4134_gpio[5]];           ## FMC_LPC_LA12_N
+set_property -dict {PACKAGE_PIN AB8  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio[6]];           ## FMC_LPC_LA13_P
+set_property -dict {PACKAGE_PIN AC8  IOSTANDARD LVCMOS18} [get_ports ad4134_gpio[7]];           ## FMC_LPC_LA13_N
 set_property -dict {PACKAGE_PIN AC2  IOSTANDARD LVCMOS18} [get_ports ad4134_pinbspi];         ## FMC_LPC_LA06_P
 set_property -dict {PACKAGE_PIN AC7  IOSTANDARD LVCMOS18} [get_ports ad4134_dclkio];          ## FMC_LPC_LA14_P
 set_property -dict {PACKAGE_PIN AC6  IOSTANDARD LVCMOS18} [get_ports ad4134_dclk_mode];       ## FMC_LPC_LA14_N
