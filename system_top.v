@@ -44,6 +44,12 @@ module system_top (
   output          ad4134_spi_sclk,
   output          ad4134_spi_cs,
 
+  // ad7134 SPI configuration interface 
+  input           ad7134_spi_sdi,
+  output          ad7134_spi_sdo,
+  output          ad7134_spi_sclk,
+  output  [1:0]   ad7134_spi_cs,
+
   // ad4134 data interface (directly from custom data capture module)
   output          ad4134_dclk,
   input           ad4134_din0,
@@ -51,6 +57,17 @@ module system_top (
   input           ad4134_din2,
   input           ad4134_din3,
   output          ad4134_odr,
+
+  output          ad7134_dclk,
+  input           ad7134_din0,
+  input           ad7134_din1,
+  input           ad7134_din2,
+  input           ad7134_din3,
+  input           ad7134_din4,
+  input           ad7134_din5,
+  input           ad7134_din6,
+  input           ad7134_din7,
+  output          ad7134_odr,
 
   // ad4134 GPIO lines
   inout           ad4134_resetn,
@@ -67,6 +84,16 @@ module system_top (
   inout           ad4134_gpio7,
   inout           ad4134_dclk_mode,
   inout           ad4134_dclkio
+
+  //ad7134 GPIO lines
+  inout  [ 1:0] ad7134_resetn,
+  inout  [ 1:0] ad7134_pdn,
+  inout  [ 1:0] ad7134_mode,
+  inout  [ 7:0] ad7134_gpio,
+  inout  [ 1:0] ad7134_dclkio,
+  inout         ad7134_pinbspi,
+  inout         ad7134_dclkmode
+  
 );
 
   // internal signals
@@ -81,10 +108,16 @@ module system_top (
   ad_iobuf #(
     .DATA_WIDTH(14)
   ) i_iobuf_ad4134_gpio (
-    .dio_t(gpio_t[45:32]),
-    .dio_i(gpio_o[45:32]),
-    .dio_o(gpio_i[45:32]),
-    .dio_p({ad4134_dclkio,      // [45]
+    .dio_t(gpio_t[61:32]),
+    .dio_i(gpio_o[61:32]),
+    .dio_o(gpio_i[61:32]),
+    .dio_p({ad7134_dclkmode,    // [61]
+            ad7134_pinbspi,     // [60]
+            ad7134_dclkio,      // [59:58]
+            ad7134_gpio,        // [57:50]
+            ad7134_mode,        // [49:48]
+            ad7134_pdn,         // [47:46]
+            ad4134_dclkio,      // [45]
             ad4134_dclk_mode,   // [44]
             ad4134_gpio7,       // [43]
             ad4134_gpio6,       // [42]
@@ -125,6 +158,15 @@ module system_top (
     .spi0_sdo_o (ad4134_spi_sdo),
     .spi0_sdo_i (1'b0),
 
+    .spi1_clk_i (ad7134_spi_sclk),
+    .spi1_clk_o (ad7134_spi_sclk),
+    .spi1_csn_0_o (ad7134_spi_cs[0]),
+    .spi1_csn_1_o (ad7134_spi_cs[1]),
+    .spi1_csn_2_o (),
+    .spi1_csn_i (1'b1),
+    .spi1_sdi_i (ad7134_spi_sdi),
+    .spi1_sdo_o (ad7134_spi_sdo),
+
     // Custom data capture interface (directly exposed from block design)
     .ad4134_din0 (ad4134_din0),
     .ad4134_din1 (ad4134_din1),
@@ -132,6 +174,12 @@ module system_top (
     .ad4134_din3 (ad4134_din3),
     .ad4134_dclk (ad4134_dclk),
     .ad4134_odr (ad4134_odr)
+
+    .ad7134_din0 (ad7134_din0),
+    .ad7134_din1 (ad7134_din1),
+    .ad7134_din2 (ad7134_din4),
+    .ad7134_din3 (ad7134_din5),
+    .ad7134_odr  (ad7134_odr)
 
     // ILA probes
     //.probe0_signal (ad4134_odr),
