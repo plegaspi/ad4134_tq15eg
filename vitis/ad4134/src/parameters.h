@@ -39,6 +39,14 @@
 #define SPI_DEVICE_ID			0
 #endif
 
+#if defined(XPAR_XSPIPS_1_DEVICE_ID)
+#define AD7134_SPI_DEVICE_ID			XPAR_XSPIPS_1_DEVICE_ID
+#elif defined(XPAR_PS7_SPI_1_DEVICE_ID)
+#define AD7134_SPI_DEVICE_ID			XPAR_PS7_SPI_1_DEVICE_ID
+#else
+#define AD7134_SPI_DEVICE_ID			0
+#endif
+
 #if defined(XPAR_XGPIOPS_0_DEVICE_ID)
 #define GPIO_DEVICE_ID			XPAR_XGPIOPS_0_DEVICE_ID
 #elif defined(XPAR_PS7_GPIO_0_DEVICE_ID)
@@ -46,6 +54,7 @@
 #else
 #define GPIO_DEVICE_ID			0
 #endif
+
 #define CN0561_SPI_CS			0
 
 /* AXI DMAC (stream to DDR) */
@@ -67,9 +76,15 @@
 #endif
 
 /* DMA configuration for tq15eg_data DMAC design */
-#define DMA_WORDS_PER_SAMPLE    4u//16u//4u      /* 128-bit AXIS beat = 4x32-bit */
-#define DMA_BYTES_PER_SAMPLE    16u//64u//16u
+#define DMA_WORDS_PER_SAMPLE    4u//16u//4u      /* 128-bit AXIS beat = 4x32-bit */ # Not used
+#define DMA_BYTES_PER_SAMPLE    32u//64u//16u
 #define DMA_BUFFER_OFFSET       0x01000000u  /* Offset from DDR base */
+#define CN0561_FMC_CH_NO		1
+#define CN0561_FMC_SAMPLE_NO	1024
+#define ADC_BUFFER_SIZE			CN0561_FMC_SAMPLE_NO
+#define DMA_TRANSFER_BYTES  (CN0561_FMC_SAMPLE_NO * DMA_BYTES_PER_SAMPLE)
+
+/* GPIO Configuration */
 #ifdef PLATFORM_ZYNQMP
 #define GPIO_OFFSET				78
 #else
@@ -86,33 +101,30 @@
 #define GPIO_5				GPIO_OFFSET + 40
 #define GPIO_6				GPIO_OFFSET + 41
 #define GPIO_7				GPIO_OFFSET + 42
-#define CN0561_FMC_CH_NO		1
-#define CN0561_FMC_SAMPLE_NO	512
 
-#define AD7134_1_SPI_CS			0
-#define AD7134_2_SPI_CS			1
-#define GPIO_RESETN_1			GPIO_OFFSET + 32
-#define GPIO_RESETN_2			GPIO_OFFSET + 33
-#define GPIO_PDN_1			GPIO_OFFSET + 34
-#define GPIO_PDN_2			GPIO_OFFSET + 35
-#define GPIO_MODE_1			GPIO_OFFSET + 36
-#define GPIO_MODE_2			GPIO_OFFSET + 37
-#define GPIO_0				GPIO_OFFSET + 38
-#define GPIO_1				GPIO_OFFSET + 39
-#define GPIO_2				GPIO_OFFSET + 40
-#define GPIO_3				GPIO_OFFSET + 41
-#define GPIO_4				GPIO_OFFSET + 42
-#define GPIO_5				GPIO_OFFSET + 43
-#define GPIO_6				GPIO_OFFSET + 44
-#define GPIO_7				GPIO_OFFSET + 45
-#define GPIO_DCLKIO_1			GPIO_OFFSET + 46
-#define GPIO_DCLKIO_2			GPIO_OFFSET + 47
-#define GPIO_PINBSPI			GPIO_OFFSET + 48
-#define GPIO_DCLKMODE			GPIO_OFFSET + 49
-#define GPIO_CS_SYNC			GPIO_OFFSET + 50
-#define GPIO_CS_SYNC_1			GPIO_OFFSET + 51
 
-#define ADC_BUFFER_SIZE			CN0561_FMC_SAMPLE_NO
+#define AD7134_SPI_CS_1			0
+#define AD7134_SPI_CS_2			1
+#define AD7134_GPIO_PDN_1			GPIO_OFFSET + 46
+#define AD7134_GPIO_PDN_2			GPIO_OFFSET + 47
+#define AD7134_GPIO_MODE_1			GPIO_OFFSET + 48
+#define AD7134_GPIO_MODE_2			GPIO_OFFSET + 49
+#define AD7134_GPIO_0				GPIO_OFFSET + 50
+#define AD7134_GPIO_1				GPIO_OFFSET + 51
+#define AD7134_GPIO_2				GPIO_OFFSET + 52
+#define AD7134_GPIO_3				GPIO_OFFSET + 53
+#define AD7134_GPIO_4				GPIO_OFFSET + 54
+#define AD7134_GPIO_5				GPIO_OFFSET + 55
+#define AD7134_GPIO_6				GPIO_OFFSET + 56
+#define AD7134_AD7134_GPIO_7				GPIO_OFFSET + 57
+#define AD7134_GPIO_DCLKIO_1			GPIO_OFFSET + 58
+#define AD7134_GPIO_DCLKIO_2			GPIO_OFFSET + 59
+#define AD7134_GPIO_PINBSPI			GPIO_OFFSET + 60
+#define AD7134_GPIO_DCLKMODE			GPIO_OFFSET + 61
+#define AD7134_GPIO_RESETN1           GPIO_OFFSET + 62
+#define AD7134_GPIO_RESETN2           GPIO_OFFSET + 63
+//#define GPIO_CS_SYNC			GPIO_OFFSET + 50 // Not implemented
+//#define GPIO_CS_SYNC_1			GPIO_OFFSET + 51 // Not implemented
 
 /* Continuous streaming: one line printed per DMA transfer.
  * Print rate = ~161k samples/sec / CN0561_FMC_SAMPLE_NO
@@ -139,8 +151,6 @@
 #define AXI_DMAC_REG_ACTIVE_ID        0x42C
 #define AXI_DMAC_REG_STATUS           0x430
 #define AXI_DMAC_REG_CURRENT_DEST     0x434*/
-
-#define DMA_TRANSFER_BYTES  (CN0561_FMC_SAMPLE_NO * DMA_BYTES_PER_SAMPLE)
 
 
 #ifdef IIO_SUPPORT

@@ -22,6 +22,16 @@ create_bd_port -dir I spi0_sdo_i
 create_bd_port -dir O spi0_sdo_o
 create_bd_port -dir I spi0_sdi_i
 
+create_bd_port -dir O spi1_csn_2_o
+create_bd_port -dir O spi1_csn_1_o
+create_bd_port -dir O spi1_csn_0_o
+create_bd_port -dir I spi1_csn_i
+create_bd_port -dir I spi1_clk_i
+create_bd_port -dir O spi1_clk_o
+create_bd_port -dir I spi1_sdo_i
+create_bd_port -dir O spi1_sdo_o
+create_bd_port -dir I spi1_sdi_i
+
 #create_bd_port -dir O -from 2 -to 0 spi1_csn
 #create_bd_port -dir O spi1_sclk
 #create_bd_port -dir O spi1_mosi
@@ -140,6 +150,16 @@ ad_connect spi0_clk_o   sys_ps8/emio_spi0_sclk_o
 ad_connect spi0_sdo_o   sys_ps8/emio_spi0_m_o
 ad_connect spi0_sdo_i   sys_ps8/emio_spi0_s_i
 ad_connect spi0_sdi_i   sys_ps8/emio_spi0_m_i
+
+ad_connect spi1_csn_2_o sys_ps8/emio_spi1_ss2_o_n
+ad_connect spi1_csn_1_o sys_ps8/emio_spi1_ss1_o_n
+ad_connect spi1_csn_0_o sys_ps8/emio_spi1_ss_o_n
+ad_connect spi1_csn_i   sys_ps8/emio_spi1_ss_i_n
+ad_connect spi1_clk_i   sys_ps8/emio_spi1_sclk_i
+ad_connect spi1_clk_o   sys_ps8/emio_spi1_sclk_o
+ad_connect spi1_sdo_o   sys_ps8/emio_spi1_m_o
+ad_connect spi1_sdo_i   sys_ps8/emio_spi1_s_i
+ad_connect spi1_sdi_i   sys_ps8/emio_spi1_m_i
 
 #ad_ip_instance xlconcat spi1_csn_concat
 #ad_ip_parameter spi1_csn_concat CONFIG.NUM_PORTS 3

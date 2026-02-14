@@ -50,7 +50,7 @@ ad_connect ad4134_axis_0/m_axis_tready ila_adc/probe5
 
 # Slice lower 32 bits of AXIS data for ILA
 ad_ip_instance xlslice slice_axis_tdata
-ad_ip_parameter slice_axis_tdata CONFIG.DIN_WIDTH 128
+ad_ip_parameter slice_axis_tdata CONFIG.DIN_WIDTH 256
 ad_ip_parameter slice_axis_tdata CONFIG.DIN_FROM 31
 ad_ip_parameter slice_axis_tdata CONFIG.DIN_TO 0
 ad_connect ad4134_axis_0/m_axis_tdata slice_axis_tdata/Din

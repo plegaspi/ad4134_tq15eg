@@ -83,7 +83,7 @@ module system_top (
   inout           ad4134_gpio6,
   inout           ad4134_gpio7,
   inout           ad4134_dclk_mode,
-  inout           ad4134_dclkio
+  inout           ad4134_dclkio,
 
   //ad7134 GPIO lines
   inout  [ 1:0] ad7134_resetn,
@@ -103,15 +103,16 @@ module system_top (
 
   // instantiations
 
-  assign gpio_i[94:46] = gpio_o[94:46];
+  assign gpio_i[94:64] = gpio_o[94:64];
 
   ad_iobuf #(
-    .DATA_WIDTH(14)
+    .DATA_WIDTH(32)
   ) i_iobuf_ad4134_gpio (
-    .dio_t(gpio_t[61:32]),
-    .dio_i(gpio_o[61:32]),
-    .dio_o(gpio_i[61:32]),
-    .dio_p({ad7134_dclkmode,    // [61]
+    .dio_t(gpio_t[63:32]),
+    .dio_i(gpio_o[63:32]),
+    .dio_o(gpio_i[63:32]),
+    .dio_p({ad7134_resetn,      // [63:62]
+            ad7134_dclkmode,    // [61]
             ad7134_pinbspi,     // [60]
             ad7134_dclkio,      // [59:58]
             ad7134_gpio,        // [57:50]
@@ -173,12 +174,13 @@ module system_top (
     .ad4134_din2 (ad4134_din2),
     .ad4134_din3 (ad4134_din3),
     .ad4134_dclk (ad4134_dclk),
-    .ad4134_odr (ad4134_odr)
+    .ad4134_odr (ad4134_odr),
 
     .ad7134_din0 (ad7134_din0),
     .ad7134_din1 (ad7134_din1),
     .ad7134_din2 (ad7134_din4),
     .ad7134_din3 (ad7134_din5),
+    .ad7134_dclk (ad7134_dclk),
     .ad7134_odr  (ad7134_odr)
 
     // ILA probes

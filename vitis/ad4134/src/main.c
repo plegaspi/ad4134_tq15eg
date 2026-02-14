@@ -7,10 +7,10 @@
 
 #include "parameters.h"
 
-#if LWIP_IPV6==1
+#if LWIP_IPV6 == 1
 #include "lwip/ip.h"
 #else
-#if LWIP_DHCP==1
+#if LWIP_DHCP == 1
 #include "lwip/dhcp.h"
 #endif
 #endif
@@ -40,14 +40,13 @@
 #include "xtime_l.h"
 #include "xil_cache.h"
 
-
 int main_thread();
 void print_echo_app_header();
 void open_connection(void *);
 
 void lwip_init();
-#if LWIP_IPV6==0
-#if LWIP_DHCP==1
+#if LWIP_IPV6 == 0
+#if LWIP_DHCP == 1
 extern volatile int dhcp_timoutcntr;
 err_t dhcp_start(struct netif *netif);
 #endif
@@ -64,20 +63,16 @@ struct no_os_spi_desc *spi_eng_desc;
 struct spi_engine_offload_message spi_engine_offload_message;
 struct spi_engine_offload_init_param spi_engine_offload_init_param;
 
-
-
-
 // Buffer Definitions
-//aligned_buffers buffers[NUM_BUFFERS];
-//uint32_t buffer_store[BUFFER_STORE_SIZE] __attribute__((aligned(1024))) = {0};
+// aligned_buffers buffers[NUM_BUFFERS];
+// uint32_t buffer_store[BUFFER_STORE_SIZE] __attribute__((aligned(1024))) = {0};
 uint32_t *dma_buf = (uint32_t *)(CN0561_DDR_BASEADDR + DMA_BUFFER_OFFSET);
 uint32_t transfer_id;
 uint32_t timeout_cnt;
 
-
 volatile uint8_t buffer_idx = 0; // For buffer iterator
 volatile uint8_t buffer_store_idx = 0;
-//uint32_t adc_buffer_len = VALID_BYTES;
+// uint32_t adc_buffer_len = VALID_BYTES;
 
 uint32_t i = 0, j;
 int32_t ret;
@@ -104,19 +99,17 @@ static inline int32_t sign_extend_24(uint32_t word)
 	return (int32_t)raw;
 }
 
-
-
-
-int fill_buffer() {
+int fill_buffer()
+{
 
 #if BUFFER_MODE == 0
 	buffer_idx = 0;
-	//spi_engine_offload_message.rx_addr = buffers[buffer_idx].data;
-	//spi_engine_offload_message.rx_addr = (uint32_t)adc_buffers[buffer_idx];
-	//ret = spi_engine_offload_transfer(spi_eng_desc, spi_engine_offload_message,
+	// spi_engine_offload_message.rx_addr = buffers[buffer_idx].data;
+	// spi_engine_offload_message.rx_addr = (uint32_t)adc_buffers[buffer_idx];
+	// ret = spi_engine_offload_transfer(spi_eng_desc, spi_engine_offload_message,
 	//	        					  (AD4134_FMC_CH_NO * AD4134_FMC_SAMPLE_NO));
 	//	if (ret != 0) {
-	//return ret;
+	// return ret;
 	//	}
 	/* Capture the transfer ID that will be assigned to this submission */
 	transfer_id = dmac_read(AXI_DMAC_REG_TRANSFER_ID) & 0x3;
@@ -128,7 +121,8 @@ int fill_buffer() {
 
 	/* Poll for completion of this specific transfer */
 	timeout_cnt = 0;
-	while (!(dmac_read(AXI_DMAC_REG_TRANSFER_DONE) & (1u << transfer_id))) {
+	while (!(dmac_read(AXI_DMAC_REG_TRANSFER_DONE) & (1u << transfer_id)))
+	{
 		/*no_os_mdelay(1);
 		if (++timeout_cnt >= DMA_TIMEOUT_MS) {
 			print("ERROR: DMA timeout\n\r");
@@ -140,12 +134,12 @@ int fill_buffer() {
 	Xil_DCacheInvalidateRange((INTPTR)dma_buf, DMA_TRANSFER_BYTES);
 
 	/*printf("%d, %+ld %+ld %+ld %+ld\n\r", CN0561_FMC_SAMPLE_NO,
-			       (long)(sign_extend_24(dma_buf[0]) * 125 / 256),
-			       (long)(sign_extend_24(dma_buf[1]) * 125 / 256),
-			       (long)(sign_extend_24(dma_buf[2]) * 125 / 256),
-			       (long)(sign_extend_24(dma_buf[3]) * 125 / 256));*/
+				   (long)(sign_extend_24(dma_buf[0]) * 125 / 256),
+				   (long)(sign_extend_24(dma_buf[1]) * 125 / 256),
+				   (long)(sign_extend_24(dma_buf[2]) * 125 / 256),
+				   (long)(sign_extend_24(dma_buf[3]) * 125 / 256));*/
 	/*printf("%d, %+d %+d %+d %+d\n\r", CN0561_FMC_SAMPLE_NO,
-				       dma_buf[0],
+					   dma_buf[0],
 					   dma_buf[1],
 					   dma_buf[2],
 					   dma_buf[3]);*/
@@ -176,7 +170,7 @@ int fill_buffer() {
 		spi_engine_offload_message.rx_addr = buffers[buffer_idx].data;
 
 		ret = spi_engine_offload_transfer(spi_eng_desc, spi_engine_offload_message,
-			        					  (AD4134_FMC_CH_NO * AD4134_FMC_SAMPLE_NO));
+										  (AD4134_FMC_CH_NO * AD4134_FMC_SAMPLE_NO));
 		if (ret != 0) {
 			return ret;
 		}
@@ -186,120 +180,251 @@ int fill_buffer() {
 	return 0;
 }
 
-
 int main()
 {
-		struct ad713x_dev *cn0561_dev;
-		struct ad713x_dev *ad7134_dev0;
-		struct ad713x_dev *ad7134_dev1;
+	uint32_t adc_channel;
+	int32_t ret;
 
-		struct ad713x_init_param cn0561_init_param = {0};
-		uint32_t adc_channel;
-		int32_t ret;
+	struct ad713x_dev *cn0561_dev;
+	struct ad713x_dev *ad7134_dev1;
+	struct ad713x_dev *ad7134_dev2;
 
-		static struct xil_spi_init_param spi_ps_init_params = {
-			.type = SPI_PS,
-		};
+	struct ad713x_init_param cn0561_init_param = {0};
+	struct ad713x_init_param ad7134_init_param_1 = {0};
+	struct ad713x_init_param ad7134_init_param_2 = {0};
 
-		struct xil_gpio_init_param gpio_ps_param;
+	static struct xil_spi_init_param spi_ps_init_params = {
+		.type = SPI_PS,
+	};
 
-		struct no_os_gpio_init_param cn0561_pnd = {
-			.number = GPIO_PDN,
-			.platform_ops = &xil_gpio_ops,
-			.extra = &gpio_ps_param
-		};
-		struct no_os_gpio_init_param cn0561_mode = {
-			.number = GPIO_MODE,
-			.platform_ops = &xil_gpio_ops,
-			.extra = &gpio_ps_param
-		};
-		struct no_os_gpio_init_param cn0561_resetn = {
-			.number = GPIO_RESETN,
-			.platform_ops = &xil_gpio_ops,
-			.extra = &gpio_ps_param
-		};
+	static struct xil_spi_init_param ad7134_spi_ps_init_params = {
+		.type = SPI_PS,
+	};
 
-		gpio_ps_param.device_id = GPIO_DEVICE_ID;
-		gpio_ps_param.type = GPIO_PS;
+	/* GPIO Config */
+	struct xil_gpio_init_param gpio_ps_param;
 
-		cn0561_init_param.adc_data_len = ADC_24_BIT_DATA;
-		cn0561_init_param.clk_delay_en = false;
-		cn0561_init_param.crc_header = CRC_6;
-		cn0561_init_param.dev_id = ID_AD4134;
-		cn0561_init_param.format = QUAD_CH_PO;
-		cn0561_init_param.gpio_dclkio = NULL;
-		cn0561_init_param.gpio_dclkmode = NULL;
-		cn0561_init_param.gpio_cs_sync = NULL;
-		cn0561_init_param.gpio_pnd = &cn0561_pnd;
-		cn0561_init_param.gpio_mode = &cn0561_mode;
-		cn0561_init_param.gpio_resetn = &cn0561_resetn;
-		cn0561_init_param.mode_master_nslave = false;
-		cn0561_init_param.dclkmode_free_ngated = false;
-		cn0561_init_param.dclkio_out_nin = false;
-		cn0561_init_param.pnd = true;
-		cn0561_init_param.spi_init_prm.chip_select = CN0561_SPI_CS;
-		cn0561_init_param.spi_init_prm.device_id = SPI_DEVICE_ID;
-		cn0561_init_param.spi_init_prm.max_speed_hz = 10000000;
-		cn0561_init_param.spi_init_prm.mode = NO_OS_SPI_MODE_0;
-		cn0561_init_param.spi_init_prm.platform_ops = &xil_spi_ops;
-		cn0561_init_param.spi_init_prm.extra = (void *)&spi_ps_init_params;
-		cn0561_init_param.spi_common_dev = 0;
+	struct no_os_gpio_init_param cn0561_pnd = {
+		.number = GPIO_PDN,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
+	struct no_os_gpio_init_param cn0561_mode = {
+		.number = GPIO_MODE,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
+	struct no_os_gpio_init_param cn0561_resetn = {
+		.number = GPIO_RESETN,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
 
-		Xil_ICacheEnable();
-		Xil_DCacheEnable();
+	struct no_os_gpio_init_param ad7134_pnd_1 = {
+		.number = AD7134_GPIO_PDN_1,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
 
-		print("Initializing AD4134...\n\r");
-		printf("  SPI device ID: %d, CS: %d\n\r", SPI_DEVICE_ID, CN0561_SPI_CS);
-		printf("  GPIO device ID: %d\n\r", GPIO_DEVICE_ID);
-		printf("  GPIO RESETN: %d, PDN: %d, MODE: %d\n\r", GPIO_RESETN, GPIO_PDN, GPIO_MODE);
-		print("  Calling ad713x_init()...\n\r");
-		ret = ad713x_init(&cn0561_dev, &cn0561_init_param);
-		if (ret != 0) {
-			printf("ERROR: ad713x_init failed with code %ld!\n\r", (long)ret);
-			return -1;
-		}
-		print("  ad713x_init() succeeded\n\r");
+	struct no_os_gpio_init_param ad7134_pnd_2 = {
+		.number = AD7134_GPIO_PDN_2,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
 
-		for (adc_channel = CH0; adc_channel <= CH3; adc_channel++) {
-			ret = ad713x_dig_filter_sel_ch(cn0561_dev, SINC3, adc_channel);
-			if (ret != 0)
-				return -1;
-		}
+	struct no_os_gpio_init_param ad7134_mode_1 = {
+		.number = AD7134_GPIO_MODE_1,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
 
-		no_os_mdelay(1000);
+	struct no_os_gpio_init_param ad7134_mode_2 = {
+		.number = AD7134_GPIO_MODE_2,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
 
-		ret = ad713x_spi_reg_write(cn0561_dev, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
+	struct no_os_gpio_init_param ad7134_resetn_1 = {
+		.number = AD7134_GPIO_RESETN1,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
+
+	struct no_os_gpio_init_param ad7134_resetn_2 = {
+		.number = AD7134_GPIO_RESETN2,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param};
+
+	gpio_ps_param.device_id = GPIO_DEVICE_ID;
+	gpio_ps_param.type = GPIO_PS;
+
+	cn0561_init_param.adc_data_len = ADC_24_BIT_DATA;
+	cn0561_init_param.clk_delay_en = false;
+	cn0561_init_param.crc_header = CRC_6;
+	cn0561_init_param.dev_id = ID_AD4134;
+	cn0561_init_param.format = QUAD_CH_PO;
+	cn0561_init_param.gpio_dclkio = NULL;
+	cn0561_init_param.gpio_dclkmode = NULL;
+	cn0561_init_param.gpio_cs_sync = NULL;
+	cn0561_init_param.gpio_pnd = &cn0561_pnd;
+	cn0561_init_param.gpio_mode = &cn0561_mode;
+	cn0561_init_param.gpio_resetn = &cn0561_resetn;
+	cn0561_init_param.mode_master_nslave = false;
+	cn0561_init_param.dclkmode_free_ngated = false;
+	cn0561_init_param.dclkio_out_nin = false;
+	cn0561_init_param.pnd = true;
+	cn0561_init_param.spi_init_prm.chip_select = CN0561_SPI_CS;
+	cn0561_init_param.spi_init_prm.device_id = SPI_DEVICE_ID;
+	cn0561_init_param.spi_init_prm.max_speed_hz = 10000000;
+	cn0561_init_param.spi_init_prm.mode = NO_OS_SPI_MODE_0;
+	cn0561_init_param.spi_init_prm.platform_ops = &xil_spi_ops;
+	cn0561_init_param.spi_init_prm.extra = (void *)&spi_ps_init_params;
+	cn0561_init_param.spi_common_dev = 0;
+
+	ad7134_init_param_1.adc_data_len = ADC_24_BIT_DATA;
+	ad7134_init_param_1.clk_delay_en = false;
+	ad7134_init_param_1.crc_header = CRC_6;
+	ad7134_init_param_1.dev_id = ID_AD4134;
+	ad7134_init_param_1.format = QUAD_CH_PO;
+	ad7134_init_param_1.gpio_dclkio = NULL;
+	ad7134_init_param_1.gpio_dclkmode = NULL;
+	ad7134_init_param_1.gpio_cs_sync = NULL;
+	ad7134_init_param_1.gpio_pnd = &ad7134_pnd_1;
+	ad7134_init_param_1.gpio_mode = &ad7134_mode_1;
+	ad7134_init_param_1.gpio_resetn = &ad7134_resetn_1;
+	ad7134_init_param_1.mode_master_nslave = false;
+	ad7134_init_param_1.dclkmode_free_ngated = false;
+	ad7134_init_param_1.dclkio_out_nin = false;
+	ad7134_init_param_1.pnd = true;
+	ad7134_init_param_1.spi_init_prm.chip_select = AD7134_SPI_CS_1;
+	ad7134_init_param_1.spi_init_prm.device_id = AD7134_SPI_DEVICE_ID;
+	ad7134_init_param_1.spi_init_prm.max_speed_hz = 10000000;
+	ad7134_init_param_1.spi_init_prm.mode = NO_OS_SPI_MODE_0;
+	ad7134_init_param_1.spi_init_prm.platform_ops = &xil_spi_ops;
+	ad7134_init_param_1.spi_init_prm.extra = (void *)&ad7134_spi_ps_init_params;
+	ad7134_init_param_1.spi_common_dev = 0;
+
+	ad7134_init_param_2.adc_data_len = ADC_24_BIT_DATA;
+	ad7134_init_param_2.clk_delay_en = false;
+	ad7134_init_param_2.crc_header = CRC_6;
+	ad7134_init_param_2.dev_id = ID_AD4134;
+	ad7134_init_param_2.format = QUAD_CH_PO;
+	ad7134_init_param_2.gpio_dclkio = NULL;
+	ad7134_init_param_2.gpio_dclkmode = NULL;
+	ad7134_init_param_2.gpio_cs_sync = NULL;
+	ad7134_init_param_2.gpio_pnd = &ad7134_pnd_2;
+	ad7134_init_param_2.gpio_mode = &ad7134_mode_2;
+	ad7134_init_param_2.gpio_resetn = &ad7134_resetn_2;
+	ad7134_init_param_2.mode_master_nslave = false;
+	ad7134_init_param_2.dclkmode_free_ngated = false;
+	ad7134_init_param_2.dclkio_out_nin = false;
+	ad7134_init_param_2.pnd = true;
+	ad7134_init_param_2.spi_init_prm.chip_select = AD7134_SPI_CS_2;
+	ad7134_init_param_2.spi_init_prm.device_id = AD7134_SPI_DEVICE_ID;
+	ad7134_init_param_2.spi_init_prm.max_speed_hz = 10000000;
+	ad7134_init_param_2.spi_init_prm.mode = NO_OS_SPI_MODE_0;
+	ad7134_init_param_2.spi_init_prm.platform_ops = &xil_spi_ops;
+	ad7134_init_param_2.spi_init_prm.extra = (void *)&ad7134_spi_ps_init_params;
+	ad7134_init_param_2.spi_common_dev = 0;
+
+	Xil_ICacheEnable();
+	Xil_DCacheEnable();
+
+	print("Initializing AD4134...\n\r");
+	printf("  SPI device ID: %d, CS: %d\n\r", SPI_DEVICE_ID, CN0561_SPI_CS);
+	printf("  GPIO device ID: %d\n\r", GPIO_DEVICE_ID);
+	printf("  GPIO RESETN: %d, PDN: %d, MODE: %d\n\r", GPIO_RESETN, GPIO_PDN, GPIO_MODE);
+	print("  Calling ad713x_init()...\n\r");
+	ret = ad713x_init(&cn0561_dev, &cn0561_init_param);
+	if (ret != 0)
+	{
+		printf("ERROR: ad413x_init failed with code %ld!\n\r", (long)ret);
+		return -1;
+	}
+
+	ret = ad713x_init(&ad7134_dev1, &ad7134_init_param_1);
+
+	if (ret != 0)
+	{
+		printf("ERROR: ad713x_init1 failed with code %ld!\n\r", (long)ret);
+		return -1;
+	}
+
+	ret = ad713x_init(&ad7134_dev2, &ad7134_init_param_2);
+
+	if (ret != 0)
+	{
+		printf("ERROR: ad473x_init2 failed with code %ld!\n\r", (long)ret);
+		return -1;
+	}
+
+	print("  adx13x_init() succeeded\n\r");
+
+	for (adc_channel = CH0; adc_channel <= CH3; adc_channel++)
+	{
+		ret = ad713x_dig_filter_sel_ch(cn0561_dev, SINC3, adc_channel);
 		if (ret != 0)
 			return -1;
-		ret = ad713x_spi_reg_write(cn0561_dev, AD713X_REG_GPIO_DATA, 0x84);
+	}
+
+	for (adc_channel = CH0; adc_channel <= CH3; adc_channel++)
+	{
+		ret = ad713x_dig_filter_sel_ch(ad7134_dev1, SINC3, adc_channel);
 		if (ret != 0)
 			return -1;
-		ad713x_spi_reg_dump(cn0561_dev);
-		/* Check DMA base address */
-		if (CN0561_DMA_BASEADDR == 0) {
-			print("ERROR: DMA base address not found in xparameters.h\n\r");
-			print("Make sure FPGA bitstream matches this software\n\r");
+	}
+
+	for (adc_channel = CH0; adc_channel <= CH3; adc_channel++)
+	{
+		ret = ad713x_dig_filter_sel_ch(ad7134_dev2, SINC3, adc_channel);
+		if (ret != 0)
 			return -1;
-		}
-		printf("DMA base: 0x%08lx, DDR base: 0x%08lx\n\r",
-		       (unsigned long)CN0561_DMA_BASEADDR,
-		       (unsigned long)CN0561_DDR_BASEADDR);
+	}
 
-		/* Clear buffer and flush so DDR is clean for first DMA write */
-		memset(dma_buf, 0, DMA_TRANSFER_BYTES);
-		Xil_DCacheFlushRange((INTPTR)dma_buf, DMA_TRANSFER_BYTES);
+	no_os_mdelay(1000);
 
-		/* Enable DMAC */
-		dmac_write(AXI_DMAC_REG_CTRL, AXI_DMAC_CTRL_ENABLE);
-		no_os_mdelay(1);
+	ret = ad713x_spi_reg_write(cn0561_dev, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
 
+	if (ret != 0)
+		return -1;
+	ret = ad713x_spi_reg_write(cn0561_dev, AD713X_REG_GPIO_DATA, 0x84);
 
+	if (ret != 0)
+		return -1;
 
-	sys_thread_new("main_thrd", (void(*)(void*))main_thread, 0,
-	                THREAD_STACKSIZE,
-	                DEFAULT_THREAD_PRIO);
+	ad713x_spi_reg_dump(cn0561_dev);
+
+	/*ret = ad713x_spi_reg_write(ad7134_dev1, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
+	if (ret != 0)
+		return -1;
+	ret = ad713x_spi_reg_write(ad7134_dev1, AD713X_REG_GPIO_DATA, 0x84);
+	if (ret != 0)
+		return -1;*/
+
+	/*ret = ad713x_spi_reg_write(ad7134_dev2, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
+	if (ret != 0)
+		return -1;
+	ret = ad713x_spi_reg_write(ad7134_dev2, AD713X_REG_GPIO_DATA, 0x84);
+	if (ret != 0)
+		return -1;*/
+
+	/* Check DMA base address */
+	if (CN0561_DMA_BASEADDR == 0)
+	{
+		print("ERROR: DMA base address not found in xparameters.h\n\r");
+		print("Make sure FPGA bitstream matches this software\n\r");
+		return -1;
+	}
+	printf("DMA base: 0x%08lx, DDR base: 0x%08lx\n\r",
+		   (unsigned long)CN0561_DMA_BASEADDR,
+		   (unsigned long)CN0561_DDR_BASEADDR);
+
+	/* Clear buffer and flush so DDR is clean for first DMA write */
+	memset(dma_buf, 0, DMA_TRANSFER_BYTES);
+	Xil_DCacheFlushRange((INTPTR)dma_buf, DMA_TRANSFER_BYTES);
+
+	/* Enable DMAC */
+	dmac_write(AXI_DMAC_REG_CTRL, AXI_DMAC_CTRL_ENABLE);
+	no_os_mdelay(1);
+
+	sys_thread_new("main_thrd", (void (*)(void *))main_thread, 0,
+				   THREAD_STACKSIZE,
+				   DEFAULT_THREAD_PRIO);
 	vTaskStartScheduler();
-	while(1);
+	while (1)
+		;
 	Xil_DCacheDisable();
 	Xil_ICacheDisable();
 	return 0;
@@ -307,117 +432,122 @@ int main()
 
 void network_thread(void *p)
 {
-    struct netif *netif;
-    unsigned char mac_ethernet_address[] = { 0x00, 0x0a, 0x35, 0x00, 0x01, 0x02 };
-#if LWIP_IPV6==0
-    ip_addr_t ipaddr, netmask, gw;
-#if LWIP_DHCP==1
-    int mscnt = 0;
+	struct netif *netif;
+	unsigned char mac_ethernet_address[] = {0x00, 0x0a, 0x35, 0x00, 0x01, 0x02};
+#if LWIP_IPV6 == 0
+	ip_addr_t ipaddr, netmask, gw;
+#if LWIP_DHCP == 1
+	int mscnt = 0;
 #endif
 #endif
 
-    netif = &server_netif;
+	netif = &server_netif;
 
-    xil_printf("\r\n\r\n");
-    xil_printf("----- lwIP TCP Send-Once Server ------\r\n");
+	xil_printf("\r\n\r\n");
+	xil_printf("----- lwIP TCP Send-Once Server ------\r\n");
 
-#if LWIP_DHCP==0
-    IP4_ADDR(&ipaddr,  192, 168, 0, 10);
-    IP4_ADDR(&netmask, 255, 255, 255,  0);
-    IP4_ADDR(&gw,      192, 168, 0, 1);
-    print_ip_settings(&ipaddr, &netmask, &gw);
+#if LWIP_DHCP == 0
+	IP4_ADDR(&ipaddr, 192, 168, 0, 10);
+	IP4_ADDR(&netmask, 255, 255, 255, 0);
+	IP4_ADDR(&gw, 192, 168, 0, 1);
+	print_ip_settings(&ipaddr, &netmask, &gw);
 #endif
 
-#if LWIP_DHCP==1
+#if LWIP_DHCP == 1
 	ipaddr.addr = 0;
 	gw.addr = 0;
 	netmask.addr = 0;
 #endif
 
-    if (!xemac_add(netif, &ipaddr, &netmask, &gw, mac_ethernet_address, PLATFORM_EMAC_BASEADDR)) {
+	if (!xemac_add(netif, &ipaddr, &netmask, &gw, mac_ethernet_address, PLATFORM_EMAC_BASEADDR))
+	{
 		xil_printf("Error adding N/W interface\r\n");
 		return;
-    }
+	}
 
-    netif_set_default(netif);
-    netif_set_up(netif);
+	netif_set_default(netif);
+	netif_set_up(netif);
 
-    sys_thread_new("xemacif_input_thread", (void(*)(void*))xemacif_input_thread, netif,
-            THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+	sys_thread_new("xemacif_input_thread", (void (*)(void *))xemacif_input_thread, netif,
+				   THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 
-#if LWIP_DHCP==1
-    dhcp_start(netif);
-    while (1) {
+#if LWIP_DHCP == 1
+	dhcp_start(netif);
+	while (1)
+	{
 		vTaskDelay(DHCP_FINE_TIMER_MSECS / portTICK_RATE_MS);
 		dhcp_fine_tmr();
 		mscnt += DHCP_FINE_TIMER_MSECS;
-		if (mscnt >= DHCP_COARSE_TIMER_SECS*1000) {
+		if (mscnt >= DHCP_COARSE_TIMER_SECS * 1000)
+		{
 			dhcp_coarse_tmr();
 			mscnt = 0;
 		}
 	}
 #else
-//fill_buffer();
+	// fill_buffer();
 
-    xil_printf("\r\n");
-    sys_thread_new("echod", open_connection, 0,
-		THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
-    vTaskDelete(NULL);
+	xil_printf("\r\n");
+	sys_thread_new("echod", open_connection, 0,
+				   THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+	vTaskDelete(NULL);
 #endif
-    return;
+	return;
 }
 
 int main_thread()
 {
-#if LWIP_DHCP==1
+#if LWIP_DHCP == 1
 	int mscnt = 0;
 #endif
 
 	lwip_init();
 
-
 	sys_thread_new("NW_THRD", network_thread, NULL,
-		THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+				   THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 
-#if LWIP_DHCP==1
-    while (1) {
+#if LWIP_DHCP == 1
+	while (1)
+	{
 		vTaskDelay(DHCP_FINE_TIMER_MSECS / portTICK_RATE_MS);
-		if (server_netif.ip_addr.addr) {
+		if (server_netif.ip_addr.addr)
+		{
 			xil_printf("DHCP request success\r\n");
 			print_ip_settings(&(server_netif.ip_addr), &(server_netif.netmask), &(server_netif.gw));
 			fill_buffer();
 			print_echo_app_header();
 			xil_printf("\r\n");
 			sys_thread_new("echod", open_connection, 0,
-					THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+						   THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 			break;
 		}
 		mscnt += DHCP_FINE_TIMER_MSECS;
-		if (mscnt >= DHCP_COARSE_TIMER_SECS * 2000) {
+		if (mscnt >= DHCP_COARSE_TIMER_SECS * 2000)
+		{
 			xil_printf("ERROR: DHCP request timed out\r\n");
 			xil_printf("Configuring default IP of 192.168.1.10\r\n");
-			IP4_ADDR(&(server_netif.ip_addr),  192, 168, 1, 10);
-			IP4_ADDR(&(server_netif.netmask), 255, 255, 255,  0);
-			IP4_ADDR(&(server_netif.gw),  192, 168, 1, 1);
+			IP4_ADDR(&(server_netif.ip_addr), 192, 168, 1, 10);
+			IP4_ADDR(&(server_netif.netmask), 255, 255, 255, 0);
+			IP4_ADDR(&(server_netif.gw), 192, 168, 1, 1);
 			print_ip_settings(&(server_netif.ip_addr), &(server_netif.netmask), &(server_netif.gw));
 			fill_buffer();
 			print_echo_app_header();
 			xil_printf("\r\n");
 			sys_thread_new("echod", open_connection, 0,
-					THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+						   THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 			break;
 		}
 	}
 #endif
-    vTaskDelete(NULL);
-    return 0;
+	vTaskDelete(NULL);
+	return 0;
 }
 
 void print_ip(char *msg, ip_addr_t *ip)
 {
 	xil_printf(msg);
 	xil_printf("%d.%d.%d.%d\n\r", ip4_addr1(ip), ip4_addr2(ip),
-			ip4_addr3(ip), ip4_addr4(ip));
+			   ip4_addr3(ip), ip4_addr4(ip));
 }
 
 void print_ip_settings(ip_addr_t *ip, ip_addr_t *mask, ip_addr_t *gw)

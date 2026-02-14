@@ -14,17 +14,21 @@ entity ad4134_axis_packer is
         data_in1      : in  std_logic_vector(23 downto 0);
         data_in2      : in  std_logic_vector(23 downto 0);
         data_in3      : in  std_logic_vector(23 downto 0);
+        data_in4      : in  std_logic_vector(23 downto 0);
+        data_in5      : in  std_logic_vector(23 downto 0);
+        data_in6      : in  std_logic_vector(23 downto 0);
+        data_in7      : in  std_logic_vector(23 downto 0);
         data_rdy      : in  std_logic;
         m_axis_tready : in  std_logic;
         m_axis_tvalid : out std_logic;
-        m_axis_tdata  : out std_logic_vector(127 downto 0);
+        m_axis_tdata  : out std_logic_vector(255 downto 0);
         m_axis_tlast  : out std_logic
     );
 end ad4134_axis_packer;
 
 architecture rtl of ad4134_axis_packer is
     signal tvalid_r     : std_logic := '0';
-    signal tdata_r      : std_logic_vector(127 downto 0) := (others => '0');
+    signal tdata_r      : std_logic_vector(255 downto 0) := (others => '0');
     -- Edge detection for data_rdy (CDC: data_rdy is from slow_clk domain ~490kHz)
     signal data_rdy_d1  : std_logic := '0';
     signal data_rdy_d2  : std_logic := '0';
@@ -61,7 +65,11 @@ begin
             -- Always latch new data on rising edge of data_rdy
             -- If DMAC isn't ready, overwrite pending data (lose old sample, keep newest)
             if (data_rdy_rising = '1') then
-                tdata_r <= x"00" & data_in3 &
+                tdata_r <= x"00" & data_in7 &
+                           x"00" & data_in6 &
+                           x"00" & data_in5 &
+                           x"00" & data_in4 &
+                           x"00" & data_in3 &
                            x"00" & data_in2 &
                            x"00" & data_in1 &
                            x"00" & data_in0;

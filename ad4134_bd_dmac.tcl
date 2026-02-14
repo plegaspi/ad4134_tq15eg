@@ -81,7 +81,7 @@ ad_ip_parameter axi_ad4134_dma CONFIG.DMA_TYPE_DEST 0
 ad_ip_parameter axi_ad4134_dma CONFIG.CYCLIC 0
 ad_ip_parameter axi_ad4134_dma CONFIG.SYNC_TRANSFER_START 0
 ad_ip_parameter axi_ad4134_dma CONFIG.DMA_2D_TRANSFER 0
-ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_SRC 128
+ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_SRC 256
 ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_DEST 64
 
 # ------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_DEST 64
 # ------------------------------------------------------------------------------
 
 ad_ip_instance util_axis_fifo axis_fifo_0
-ad_ip_parameter axis_fifo_0 CONFIG.DATA_WIDTH 128
+ad_ip_parameter axis_fifo_0 CONFIG.DATA_WIDTH 256
 ad_ip_parameter axis_fifo_0 CONFIG.ADDRESS_WIDTH 12
 ad_ip_parameter axis_fifo_0 CONFIG.ASYNC_CLK 0
 
@@ -143,6 +143,12 @@ ad_connect ad4134_data_0/data_out0 ad4134_axis_0/data_in0
 ad_connect ad4134_data_0/data_out1 ad4134_axis_0/data_in1
 ad_connect ad4134_data_0/data_out2 ad4134_axis_0/data_in2
 ad_connect ad4134_data_0/data_out3 ad4134_axis_0/data_in3
+
+ad_connect ad7134_data_0/data_out0 ad4134_axis_0/data_in4
+ad_connect ad7134_data_0/data_out1 ad4134_axis_0/data_in5
+ad_connect ad7134_data_0/data_out2 ad4134_axis_0/data_in6
+ad_connect ad7134_data_0/data_out3 ad4134_axis_0/data_in7
+
 ad_connect ad4134_data_0/data_rdy  ad4134_axis_0/data_rdy
 
 # Packer -> FIFO (tlast not connected: TLAST_EN=0 on FIFO, always 0 anyway)
@@ -160,8 +166,8 @@ ad_connect axi_ad4134_dma/s_axis_ready axis_fifo_0/m_axis_ready
 ad_connect GND axi_ad4134_dma/s_axis_last
 # strb/keep = all ones (all bytes valid in 128-bit word)
 ad_ip_instance xlconstant const_axis_strb
-ad_ip_parameter const_axis_strb CONFIG.CONST_WIDTH 16
-ad_ip_parameter const_axis_strb CONFIG.CONST_VAL 0xFFFF
+ad_ip_parameter const_axis_strb CONFIG.CONST_WIDTH 32
+ad_ip_parameter const_axis_strb CONFIG.CONST_VAL 0xFFFFFFFF
 ad_connect const_axis_strb/dout axi_ad4134_dma/s_axis_strb
 ad_connect const_axis_strb/dout axi_ad4134_dma/s_axis_keep
 

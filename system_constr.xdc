@@ -40,6 +40,16 @@ set_property -dict {PACKAGE_PIN AC2  IOSTANDARD LVCMOS18} [get_ports ad4134_pinb
 set_property -dict {PACKAGE_PIN AC7  IOSTANDARD LVCMOS18} [get_ports ad4134_dclkio];          ## FMC_LPC_LA14_P
 set_property -dict {PACKAGE_PIN AC6  IOSTANDARD LVCMOS18} [get_ports ad4134_dclk_mode];       ## FMC_LPC_LA14_N
 
+
+# ad7134 SPI configuration interface
+
+set_property -dict {PACKAGE_PIN AH1 IOSTANDARD LVCMOS18} [get_ports ad7134_spi_sdi];         ## FMC_LPC_LA03_P
+set_property -dict {PACKAGE_PIN AF1 IOSTANDARD LVCMOS18} [get_ports ad7134_spi_sdo];         ## FMC_LPC_LA04_N
+set_property -dict {PACKAGE_PIN AJ6 IOSTANDARD LVCMOS18} [get_ports ad7134_spi_sclk];        ## FMC_LPC_LA01_P_CC
+set_property -dict {PACKAGE_PIN AG3 IOSTANDARD LVCMOS18} [get_ports ad7134_spi_cs[0]];          ## FMC_LPC_LA05_P
+set_property -dict {PACKAGE_PIN AH3 IOSTANDARD LVCMOS18} [get_ports ad7134_spi_cs[1]];          ## FMC_LPC_LA05_N
+
+
 # ad7134 data interface
 
 set_property -dict {PACKAGE_PIN AE7 IOSTANDARD LVCMOS18 IOB TRUE} [get_ports ad7134_dclk];   ## FMC_LPC_CLK0_M2C_P
