@@ -46,7 +46,7 @@ create_bd_port -dir O ad7134_odr
 set ad4134_data_0 [create_bd_cell -type module -reference ad4134_data ad4134_data_0]
 set ad4134_axis_0 [create_bd_cell -type module -reference ad4134_axis_packer ad4134_axis_0]
 
-set ad7134_data_0 [create_bd_cell -type module -reference ad4134_data ad7134_data_0]
+set ad7134_data_0 [create_bd_cell -type module -reference ad7134_data ad7134_data_0]
 
 
 # ------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ ad_ip_parameter axi_ad4134_dma CONFIG.DMA_TYPE_DEST 0
 ad_ip_parameter axi_ad4134_dma CONFIG.CYCLIC 0
 ad_ip_parameter axi_ad4134_dma CONFIG.SYNC_TRANSFER_START 0
 ad_ip_parameter axi_ad4134_dma CONFIG.DMA_2D_TRANSFER 0
-ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_SRC 256
+ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_SRC 512
 ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_DEST 64
 
 # ------------------------------------------------------------------------------
@@ -90,8 +90,8 @@ ad_ip_parameter axi_ad4134_dma CONFIG.DMA_DATA_WIDTH_DEST 64
 # ------------------------------------------------------------------------------
 
 ad_ip_instance util_axis_fifo axis_fifo_0
-ad_ip_parameter axis_fifo_0 CONFIG.DATA_WIDTH 256
-ad_ip_parameter axis_fifo_0 CONFIG.ADDRESS_WIDTH 12
+ad_ip_parameter axis_fifo_0 CONFIG.DATA_WIDTH 512
+ad_ip_parameter axis_fifo_0 CONFIG.ADDRESS_WIDTH 13
 ad_ip_parameter axis_fifo_0 CONFIG.ASYNC_CLK 0
 
 # ------------------------------------------------------------------------------
@@ -126,8 +126,12 @@ ad_connect ad4134_din3 ad4134_data_0/data_in3
 
 ad_connect ad7134_din0 ad7134_data_0/data_in0
 ad_connect ad7134_din1 ad7134_data_0/data_in1
-ad_connect ad7134_din4 ad7134_data_0/data_in2
-ad_connect ad7134_din5 ad7134_data_0/data_in3
+ad_connect ad7134_din2 ad7134_data_0/data_in2
+ad_connect ad7134_din3 ad7134_data_0/data_in3
+ad_connect ad7134_din4 ad7134_data_0/data_in4
+ad_connect ad7134_din5 ad7134_data_0/data_in5
+ad_connect ad7134_din6 ad7134_data_0/data_in6
+ad_connect ad7134_din7 ad7134_data_0/data_in7
 
 ad_connect ad4134_data_0/dclk_out ad4134_dclk
 ad_connect ad4134_data_0/odr_out ad4134_odr
@@ -148,6 +152,10 @@ ad_connect ad7134_data_0/data_out0 ad4134_axis_0/data_in4
 ad_connect ad7134_data_0/data_out1 ad4134_axis_0/data_in5
 ad_connect ad7134_data_0/data_out2 ad4134_axis_0/data_in6
 ad_connect ad7134_data_0/data_out3 ad4134_axis_0/data_in7
+ad_connect ad7134_data_0/data_out4 ad4134_axis_0/data_in8
+ad_connect ad7134_data_0/data_out5 ad4134_axis_0/data_in9
+ad_connect ad7134_data_0/data_out6 ad4134_axis_0/data_in10
+ad_connect ad7134_data_0/data_out7 ad4134_axis_0/data_in11
 
 ad_connect ad4134_data_0/data_rdy  ad4134_axis_0/data_rdy
 

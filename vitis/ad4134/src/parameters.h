@@ -77,10 +77,10 @@
 
 /* DMA configuration for tq15eg_data DMAC design */
 #define DMA_WORDS_PER_SAMPLE    4u//16u//4u      /* 128-bit AXIS beat = 4x32-bit */ # Not used
-#define DMA_BYTES_PER_SAMPLE    32u//64u//16u
+#define DMA_BYTES_PER_SAMPLE    64u//32u//64u//16u
 #define DMA_BUFFER_OFFSET       0x01000000u  /* Offset from DDR base */
 #define CN0561_FMC_CH_NO		1
-#define CN0561_FMC_SAMPLE_NO	512
+#define CN0561_FMC_SAMPLE_NO	1024
 #define ADC_BUFFER_SIZE			CN0561_FMC_SAMPLE_NO
 #define DMA_TRANSFER_BYTES  (CN0561_FMC_SAMPLE_NO * DMA_BYTES_PER_SAMPLE)
 

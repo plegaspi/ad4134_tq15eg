@@ -12,6 +12,7 @@ source $ad_hdl_dir/projects/scripts/adi_pd.tcl
 set custom_src_dir "/home/neutrino/Documents/hdl-2022_r2_p1/projects/ad4134_fmc/tq15eg_data"
 add_files -norecurse [list \
     "$custom_src_dir/ad4134_data.vhd" \
+    "$custom_src_dir/ad7134_data.vhd" \
     "$custom_src_dir/ad4134_axis_packer.vhd"]
 update_compile_order -fileset sources_1
 

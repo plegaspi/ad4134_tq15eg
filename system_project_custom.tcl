@@ -21,6 +21,7 @@ adi_project $project_name
 # These must be added first so module references work
 add_files -norecurse [list \
     "$custom_src_dir/ad4134_data.vhd" \
+    "$custom_src_dir/ad7134_data.vhd" \
     "$custom_src_dir/ad4134_to_bram.vhd"]
 
 update_compile_order -fileset sources_1
