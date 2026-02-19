@@ -247,6 +247,38 @@ int main()
 		.platform_ops = &xil_gpio_ops,
 		.extra = &gpio_ps_param};
 
+	struct no_os_gpio_init_param ad7134_1_dclkio = {
+			.number = AD7134_GPIO_DCLKIO_1,
+			.platform_ops = &xil_gpio_ops,
+			.extra = &gpio_ps_param
+	};
+	struct no_os_gpio_init_param ad7134_2_dclkio = {
+		.number = AD7134_GPIO_DCLKIO_2,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param
+	};
+	struct no_os_gpio_init_param ad7134_1_dclkmode = {
+		.number = AD7134_GPIO_DCLKMODE,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param
+	};
+	struct no_os_gpio_init_param ad7134_2_dclkmode = {
+		.number = AD7134_GPIO_DCLKMODE,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param
+	};
+
+	struct no_os_gpio_init_param ad7134_cs_sync_1 = {
+			.number = AD7134_GPIO_CS_SYNC_1,
+			.platform_ops = &xil_gpio_ops,
+			.extra = &gpio_ps_param
+		};
+	struct no_os_gpio_init_param ad7134_cs_sync_2 = {
+		.number = AD7134_GPIO_CS_SYNC_2,
+		.platform_ops = &xil_gpio_ops,
+		.extra = &gpio_ps_param
+	};
+
 	gpio_ps_param.device_id = GPIO_DEVICE_ID;
 	gpio_ps_param.type = GPIO_PS;
 
@@ -276,11 +308,11 @@ int main()
 	ad7134_init_param_1.adc_data_len = ADC_24_BIT_DATA;
 	ad7134_init_param_1.clk_delay_en = false;
 	ad7134_init_param_1.crc_header = CRC_6;
-	ad7134_init_param_1.dev_id = ID_AD4134;
+	ad7134_init_param_1.dev_id = ID_AD7134;
 	ad7134_init_param_1.format = QUAD_CH_PO;
-	ad7134_init_param_1.gpio_dclkio = NULL;
-	ad7134_init_param_1.gpio_dclkmode = NULL;
-	ad7134_init_param_1.gpio_cs_sync = NULL;
+	ad7134_init_param_1.gpio_dclkio = &ad7134_1_dclkio;
+	ad7134_init_param_1.gpio_dclkmode = &ad7134_1_dclkmode;
+	ad7134_init_param_1.gpio_cs_sync = &ad7134_cs_sync_1;
 	ad7134_init_param_1.gpio_pnd = &ad7134_pnd_1;
 	ad7134_init_param_1.gpio_mode = &ad7134_mode_1;
 	ad7134_init_param_1.gpio_resetn = &ad7134_resetn_1;
@@ -299,11 +331,11 @@ int main()
 	ad7134_init_param_2.adc_data_len = ADC_24_BIT_DATA;
 	ad7134_init_param_2.clk_delay_en = false;
 	ad7134_init_param_2.crc_header = CRC_6;
-	ad7134_init_param_2.dev_id = ID_AD4134;
+	ad7134_init_param_2.dev_id = ID_AD7134;
 	ad7134_init_param_2.format = QUAD_CH_PO;
-	ad7134_init_param_2.gpio_dclkio = NULL;
-	ad7134_init_param_2.gpio_dclkmode = NULL;
-	ad7134_init_param_2.gpio_cs_sync = NULL;
+	ad7134_init_param_2.gpio_dclkio = &ad7134_2_dclkio;
+	ad7134_init_param_2.gpio_dclkmode = &ad7134_2_dclkmode;
+	ad7134_init_param_2.gpio_cs_sync = &ad7134_cs_sync_2;
 	ad7134_init_param_2.gpio_pnd = &ad7134_pnd_2;
 	ad7134_init_param_2.gpio_mode = &ad7134_mode_2;
 	ad7134_init_param_2.gpio_resetn = &ad7134_resetn_2;
@@ -336,17 +368,21 @@ int main()
 
 	ret = ad713x_init(&ad7134_dev1, &ad7134_init_param_1);
 
+
+
 	if (ret != 0)
 	{
 		printf("ERROR: ad713x_init1 failed with code %ld!\n\r", (long)ret);
 		return -1;
 	}
 
+	no_os_mdelay(1000);
+	ad7134_init_param_2.spi_common_dev = ad7134_dev1->spi_desc;
 	ret = ad713x_init(&ad7134_dev2, &ad7134_init_param_2);
 
 	if (ret != 0)
 	{
-		printf("ERROR: ad473x_init2 failed with code %ld!\n\r", (long)ret);
+		printf("ERROR: ad7134x_init2 failed with code %ld!\n\r", (long)ret);
 		return -1;
 	}
 
@@ -373,7 +409,12 @@ int main()
 			return -1;
 	}
 
+
+
+
 	no_os_mdelay(1000);
+
+	//ad713x_channel_sync(ad7134_dev1);
 
 	ret = ad713x_spi_reg_write(cn0561_dev, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
 
@@ -384,21 +425,22 @@ int main()
 	if (ret != 0)
 		return -1;
 
-	ad713x_spi_reg_dump(cn0561_dev);
-
-	/*ret = ad713x_spi_reg_write(ad7134_dev1, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
+	ret = ad713x_spi_reg_write(ad7134_dev1, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
 	if (ret != 0)
 		return -1;
+
 	ret = ad713x_spi_reg_write(ad7134_dev1, AD713X_REG_GPIO_DATA, 0x84);
 	if (ret != 0)
-		return -1;*/
-
-	/*ret = ad713x_spi_reg_write(ad7134_dev2, AD713X_REG_GPIO_DIR_CTRL, 0xE7);
-	if (ret != 0)
 		return -1;
-	ret = ad713x_spi_reg_write(ad7134_dev2, AD713X_REG_GPIO_DATA, 0x84);
-	if (ret != 0)
-		return -1;*/
+
+
+
+	printf("AD4134 REG DUMP\r\n");
+	ad713x_spi_reg_dump(cn0561_dev);
+	printf("AD7134_1 REG DUMP\r\n");
+	ad713x_spi_reg_dump(ad7134_dev1);
+	printf("AD7134_2 REG DUMP\r\n");
+	ad713x_spi_reg_dump(ad7134_dev2);
 
 	/* Check DMA base address */
 	if (CN0561_DMA_BASEADDR == 0)

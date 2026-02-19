@@ -100,10 +100,15 @@ module system_top (
   wire    [94:0]  gpio_i;
   wire    [94:0]  gpio_o;
   wire    [94:0]  gpio_t;
+  wire    [ 1:0]  ad7134_cs;
 
   // instantiations
 
-  assign gpio_i[94:64] = gpio_o[94:64];
+  assign gpio_i[94:65] = gpio_o[94:65];
+
+  // GPIO 64 is reserved for sync. 
+  assign ad7134_spi_cs = gpio_o[64] ? {ad7134_cs[0], ad7134_cs[0]} : ad7134_cs;
+
 
   ad_iobuf #(
     .DATA_WIDTH(32)
@@ -161,8 +166,8 @@ module system_top (
 
     .spi1_clk_i (ad7134_spi_sclk),
     .spi1_clk_o (ad7134_spi_sclk),
-    .spi1_csn_0_o (ad7134_spi_cs[0]),
-    .spi1_csn_1_o (ad7134_spi_cs[1]),
+    .spi1_csn_0_o (ad7134_cs[0]),
+    .spi1_csn_1_o (ad7134_cs[1]),
     .spi1_csn_2_o (),
     .spi1_csn_i (1'b1),
     .spi1_sdi_i (ad7134_spi_sdi),
@@ -178,8 +183,12 @@ module system_top (
 
     .ad7134_din0 (ad7134_din0),
     .ad7134_din1 (ad7134_din1),
-    .ad7134_din2 (ad7134_din4),
-    .ad7134_din3 (ad7134_din5),
+    .ad7134_din2 (ad7134_din2),
+    .ad7134_din3 (ad7134_din3),
+    .ad7134_din4 (ad7134_din4),
+    .ad7134_din5 (ad7134_din5),
+    .ad7134_din6 (ad7134_din6),
+    .ad7134_din7 (ad7134_din7),
     .ad7134_dclk (ad7134_dclk),
     .ad7134_odr  (ad7134_odr)
 

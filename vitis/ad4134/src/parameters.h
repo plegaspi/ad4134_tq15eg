@@ -80,7 +80,7 @@
 #define DMA_BYTES_PER_SAMPLE    32u//64u//16u
 #define DMA_BUFFER_OFFSET       0x01000000u  /* Offset from DDR base */
 #define CN0561_FMC_CH_NO		1
-#define CN0561_FMC_SAMPLE_NO	1024
+#define CN0561_FMC_SAMPLE_NO	512
 #define ADC_BUFFER_SIZE			CN0561_FMC_SAMPLE_NO
 #define DMA_TRANSFER_BYTES  (CN0561_FMC_SAMPLE_NO * DMA_BYTES_PER_SAMPLE)
 
@@ -123,8 +123,8 @@
 #define AD7134_GPIO_DCLKMODE			GPIO_OFFSET + 61
 #define AD7134_GPIO_RESETN1           GPIO_OFFSET + 62
 #define AD7134_GPIO_RESETN2           GPIO_OFFSET + 63
-//#define GPIO_CS_SYNC			GPIO_OFFSET + 50 // Not implemented
-//#define GPIO_CS_SYNC_1			GPIO_OFFSET + 51 // Not implemented
+#define AD7134_GPIO_CS_SYNC_1			GPIO_OFFSET + 64
+#define AD7134_GPIO_CS_SYNC_2			GPIO_OFFSET + 65
 
 /* Continuous streaming: one line printed per DMA transfer.
  * Print rate = ~161k samples/sec / CN0561_FMC_SAMPLE_NO
